@@ -38,8 +38,11 @@ def spawn_players():
 
 
 def spawn_ball():
-    pass
-
+    print("Spawing the ball at field center")
+    root_node = robot.getRoot()
+    children_field = root_node.getField("children")
+    children_field.importMFNodeFromString(-1, 'DEF BALL RobocupSoccerBall { translation 0 0 1 }')
+    ball_node = robot.getFromDef('BALL')
 
 player_definitions = [
     {
