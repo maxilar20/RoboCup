@@ -6,8 +6,7 @@ robot = Supervisor()
 
 
 def end_simulation():
-    print("sim ended")
-
+    pass
 
 def time_up():
     print("checking if time up")
