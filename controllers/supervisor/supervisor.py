@@ -5,6 +5,43 @@ TIME_STEP = 32
 robot = Supervisor()
 
 
+def end_simulation():
+    print("sim ended")
+
+
+def time_up():
+    print("checking if time up")
+
+
+def start_timer():
+    print("starting time")
+
+
+def reset_simulation():
+    print("reseting sim")
+
+
+def goal():
+    print("checking if there is goal")
+
+
+def increment_counter():
+    pass
+
+
+def ball_out():
+    pass
+
+
+def spawn_players():
+    for player in player_definitions:
+        Player(robot, **player)
+
+
+def spawn_ball():
+    pass
+
+
 player_definitions = [
     {
         "player": "1",
@@ -56,13 +93,28 @@ player_definitions = [
     },
 ]
 
-for player in player_definitions:
-    print(player)
-    a = Player(robot, **player)
-    print(dir(a.node))
 
+start_timer()
+
+reset_simulation()
+
+# Spawning entities
+spawn_players()
+spawn_ball()
+
+# Running time step
 i = 0
 while robot.step(TIME_STEP) != -1:
-    # position = ball_node.getPosition()
+
+    if time_up():
+        break
+
+    if goal():
+        increment_counter()
+
+    if ball_out():
+        reset_simulation()
 
     i += 1
+
+end_simulation()

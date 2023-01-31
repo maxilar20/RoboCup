@@ -24,15 +24,15 @@ class Nao(Robot):
 
     # load motion files
     def loadMotionFiles(self):
-        self.handWave = Motion("/motions/HandWave.motion")
-        self.forwards = Motion("/motions/Forwards.motion")
-        self.backwards = Motion("/motions/Backwards.motion")
-        self.sideStepLeft = Motion("/motions/SideStepLeft.motion")
-        self.sideStepRight = Motion("/motions/SideStepRight.motion")
-        self.turnLeft60 = Motion("/motions/TurnLeft40.motion")
-        self.turnRight60 = Motion("/motions/TurnRight40.motion")
-        self.taiChi = Motion("/motions/TaiChi.motion")
-        self.wipeForhead = Motion("/motions/WipeForehead.motion")
+        self.handWave = Motion("./motions/HandWave.motion")
+        self.forwards = Motion("./motions/Forwards.motion")
+        self.backwards = Motion("./motions/Backwards.motion")
+        self.sideStepLeft = Motion("./motions/SideStepLeft.motion")
+        self.sideStepRight = Motion("./motions/SideStepRight.motion")
+        self.turnLeft60 = Motion("./motions/TurnLeft40.motion")
+        self.turnRight60 = Motion("./motions/TurnRight40.motion")
+        self.taiChi = Motion("./motions/TaiChi.motion")
+        self.wipeForhead = Motion("./motions/WipeForehead.motion")
 
     def startMotion(self, motion):
         # interrupt current motion
