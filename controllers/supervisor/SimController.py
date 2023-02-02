@@ -14,12 +14,10 @@ class SimController(Supervisor):
         self.start_game_time_seconds = time.time()
 
     def reset_simulation(self):
-        print("reseting sim")
+        print("Reseting sim")
 
     def spawn_players(self):
-        self.players = []
-        for player in player_definitions:
-            self.players.append(Player(self, **player))
+        self.players = [Player(self, **player) for player in player_definitions]
 
     def spawn_ball(self):
         pass
@@ -28,16 +26,17 @@ class SimController(Supervisor):
         pass
 
     def goal(self):
-        print("checking if there is goal")
+        print("Checking if there is goal")
 
     def ball_out(self):
         pass
 
     def time_up(self):
         time_passed = time.time() - self.start_game_time_seconds
-        print(
-            f"Checking if time up. Game Time: {time.strftime('%M:%S',time.gmtime(time_passed))}"
-        )
+
+        print(f"Game Time: {time.strftime('%M:%S',time.gmtime(time_passed))}")
+        print(f"Checking if time up")
+
         return time_passed > self.max_game_time_secs
 
     def end_simulation(self):
