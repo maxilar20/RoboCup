@@ -326,7 +326,7 @@ class Nao(Robot):
         # initialize stuff
         self.findAndEnableDevices()
         self.loadMotionFiles()
-        self.printHelp()
+        # self.printHelp()
 
     def run(self):
         self.handWave.setLoop(True)

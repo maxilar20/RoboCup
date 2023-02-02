@@ -1,120 +1,30 @@
-from controller import Supervisor
-from Player import *
+from SimController import *
 
-TIME_STEP = 32
-robot = Supervisor()
+# Initializing controller
+simcontroller = SimController(max_game_time_mins=0.2)
 
-
-def end_simulation():
-    print("sim ended")
-
-
-def time_up():
-    print("checking if time up")
-
-
-def start_timer():
-    print("starting time")
-
-
-def reset_simulation():
-    print("reseting sim")
-
-
-def goal():
-    print("checking if there is goal")
-
-
-def increment_counter():
-    pass
-
-
-def ball_out():
-    pass
-
-
-def spawn_players():
-    for player in player_definitions:
-        Player(robot, **player)
-
-
-def spawn_ball():
-    pass
-
-
-player_definitions = [
-    {
-        "player": "1",
-        "team": "red",
-        "position": "goalie",
-        "translation": "-4 0 0.4",
-    },
-    {
-        "player": "2",
-        "team": "red",
-        "position": "defender",
-        "translation": "-2.5 0 0.4",
-    },
-    {
-        "player": "3",
-        "team": "red",
-        "position": "attacker_left",
-        "translation": "-1 0.5 0.4",
-    },
-    {
-        "player": "4",
-        "team": "red",
-        "position": "attacker_right",
-        "translation": "-1 -0.5 0.4",
-    },
-    {
-        "player": "1",
-        "team": "blue",
-        "position": "goalie",
-        "translation": "4 0 0.4",
-    },
-    {
-        "player": "2",
-        "team": "blue",
-        "position": "defender",
-        "translation": "2.5 0 0.4",
-    },
-    {
-        "player": "3",
-        "team": "blue",
-        "position": "attacker_left",
-        "translation": "1 -0.5 0.4",
-    },
-    {
-        "player": "4",
-        "team": "blue",
-        "position": "attacker_right",
-        "translation": "1 0.5 0.4",
-    },
-]
-
-
-start_timer()
-
-reset_simulation()
+# Resetting values
+simcontroller.reset_timer()
+simcontroller.reset_simulation()
 
 # Spawning entities
-spawn_players()
-spawn_ball()
+simcontroller.spawn_players()
+simcontroller.spawn_ball()
 
+TIME_STEP = 32
 # Running time step
 i = 0
-while robot.step(TIME_STEP) != -1:
+while simcontroller.step(TIME_STEP) != -1:
 
-    if time_up():
+    if simcontroller.time_up():
         break
 
-    if goal():
-        increment_counter()
+    if simcontroller.goal():
+        simcontroller.increment_counter()
 
-    if ball_out():
-        reset_simulation()
+    if simcontroller.ball_out():
+        simcontroller.reset_simulation()
 
     i += 1
 
-end_simulation()
+simcontroller.end_simulation()
