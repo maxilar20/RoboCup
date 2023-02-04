@@ -5,12 +5,13 @@ EXTERNPROTO "https://raw.githubusercontent.com/cyberbotics/webots/R2023a/project
 IMPORTABLE EXTERNPROTO "../protos/Nao.proto"
 EXTERNPROTO "https://raw.githubusercontent.com/cyberbotics/webots/R2023a/projects/objects/robotstadium/protos/RobotstadiumSoccerField.proto"
 IMPORTABLE EXTERNPROTO "https://raw.githubusercontent.com/cyberbotics/webots/R2023a/projects/objects/balls/protos/RobocupSoccerBall.proto"
+IMPORTABLE EXTERNPROTO "https://raw.githubusercontent.com/cyberbotics/webots/R2023a/projects/objects/robotstadium/protos/RobotstadiumGoal.proto"
 
 WorldInfo {
 }
 Viewpoint {
-  orientation -0.1493003655638402 0.1525095826546069 0.976959685985569 1.572857877220386
-  position -0.28654883375871776 -17.70979530009796 5.465954373317956
+  orientation 0.22018576061271183 0.2832050985680465 -0.9334415369847566 1.3889706446120833
+  position -3.9153004762388592 13.887258717975655 7.7533960511331905
 }
 Robot {
   name "supervisor"
@@ -22,4 +23,12 @@ TexturedBackground {
 TexturedBackgroundLight {
 }
 RobotstadiumSoccerField {
+}
+DEF GOAL_BLUE RobotstadiumGoal {
+  translation 4.55 0 0
+}
+DEF GOAL_RED RobotstadiumGoal {
+  translation -4.55 0 0
+  rotation 0 0 1 3.14159
+  name "robotstadium goal(1)"
 }
