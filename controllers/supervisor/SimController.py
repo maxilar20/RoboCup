@@ -20,7 +20,11 @@ class SimController(Supervisor):
         self.players = [Player(self, **player) for player in player_definitions]
 
     def spawn_ball(self):
-        pass
+        print("Spawning the ball at field center")
+        root_node = self.getRoot()
+        children_field = root_node.getField("children")
+        children_field.importMFNodeFromString(-1, 'DEF BALL RobocupSoccerBall { translation 0 0 1 }')
+        ball_node = self.getFromDef('BALL')
 
     def increment_counter(self):
         pass
