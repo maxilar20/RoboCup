@@ -20,13 +20,42 @@ class SimController(Supervisor):
         self.players = [Player(self, **player) for player in player_definitions]
 
     def spawn_ball(self):
-        pass
+        print("Spawning the ball at field center")
+        root_node = self.getRoot()
+        children_field = root_node.getField("children")
+        children_field.importMFNodeFromString(-1, 'DEF BALL RobocupSoccerBall { translation 0 0 1 }')
+        ball_node = self.getFromDef('BALL')
+    
+    '''
+    Tried a different method for goal check using goal objects:
 
-    def increment_counter(self):
-        pass
+    def goal_check(self):
+        print("checking goal")
+        
+        ball_node = self.getFromDef('BALL')
+        goal_node_blue = self.getFromDef('GOAL_BLUE')
+        goal_node_red = self.getFromDef('GOAL_RED')
+        
+        ball_position = ball_node.getField("translation").getSFVec3f()
+        goal_position_blue = goal_node_blue.getField("translation").getSFVec3f()
+        goal_position_red = goal_node_red.getField("translation").getSFVec3f()
 
-    def goal(self):
-        print("Checking if there is goal")
+    '''
+
+    def goal_check(self):
+        print("Checking goal")
+
+        ball_node = self.getFromDef('BALL')
+        ball_position = ball_node.getField("translation")
+        ball_x = ball_position.getSFVec3f()[0]
+        ball_y = ball_position.getSFVec3f()[1]
+
+        if ball_x < -4.55 and ball_y < 0.7:
+            #print("Score for blue team")
+            return "blue"
+        elif ball_x > 4.55 and ball_y < 0.7:
+            #print("Score for red team")
+            return "red"
 
     def ball_out(self):
         pass
