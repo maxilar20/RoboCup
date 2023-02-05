@@ -14,7 +14,34 @@ class SimController(Supervisor):
         self.start_game_time_seconds = time.time()
 
     def reset_simulation(self):
-        print("Reseting sim")
+        time.sleep(5)
+        ball = self.getFromDef('BALL')
+        ball_position = ball.getField("translation")
+        ball_position.setSFVec3f([0, 0, 1])
+        red1 = self.getFromDef('red_1')
+        red1_position = red1.getField("translation")
+        red1_position.setSFVec3f([-4, 0, 0.4])
+        red2 = self.getFromDef('red_2')
+        red2_position = red2.getField("translation")
+        red2_position.setSFVec3f([-2.5, 0, 0.4])
+        red3 = self.getFromDef('red_3')
+        red3_position = red3.getField("translation")
+        red3_position.setSFVec3f([-1, 0.5, 0.4])
+        red4 = self.getFromDef('red_4')
+        red4_position = red4.getField("translation")
+        red4_position.setSFVec3f([-1, -0.5, 0.4])
+        blue1 = self.getFromDef('blue_1')
+        blue1_position = blue1.getField("translation")
+        blue1_position.setSFVec3f([4, 0, 0.4])
+        blue2 = self.getFromDef('blue_2')
+        blue2_position = blue2.getField("translation")
+        blue2_position.setSFVec3f([2.5, 0, 0.4])
+        blue3 = self.getFromDef('blue_3')
+        blue3_position = blue3.getField("translation")
+        blue3_position.setSFVec3f([1, -0.5, 0.4])
+        blue4 = self.getFromDef('blue_4')
+        blue4_position = blue4.getField("translation")
+        blue4_position.setSFVec3f([1, 0.5, 0.4])
 
     def spawn_players(self):
         self.players = [Player(self, **player) for player in player_definitions]
@@ -25,22 +52,6 @@ class SimController(Supervisor):
         children_field = root_node.getField("children")
         children_field.importMFNodeFromString(-1, 'DEF BALL RobocupSoccerBall { translation 0 0 1 }')
         ball_node = self.getFromDef('BALL')
-    
-    '''
-    Tried a different method for goal check using goal objects:
-
-    def goal_check(self):
-        print("checking goal")
-        
-        ball_node = self.getFromDef('BALL')
-        goal_node_blue = self.getFromDef('GOAL_BLUE')
-        goal_node_red = self.getFromDef('GOAL_RED')
-        
-        ball_position = ball_node.getField("translation").getSFVec3f()
-        goal_position_blue = goal_node_blue.getField("translation").getSFVec3f()
-        goal_position_red = goal_node_red.getField("translation").getSFVec3f()
-
-    '''
 
     def goal_check(self):
         print("Checking goal")
