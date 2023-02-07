@@ -15,7 +15,7 @@ Viewpoint {
 }
 Robot {
   name "supervisor"
-  controller "supervisor"
+  controller "SimController"
   supervisor TRUE
 }
 TexturedBackground {

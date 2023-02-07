@@ -8,6 +8,8 @@ class SimController(Supervisor):
     def __init__(self, max_game_time_mins=15):
         super().__init__()
 
+        self.running = True
+
         self.GUI = GUI()
 
         self.start_game_time_seconds = 0
@@ -16,12 +18,32 @@ class SimController(Supervisor):
         self.red_score = 0
         self.blue_score = 0
 
+        # Resetting values
+        self.reset_timer()
+
+        # Spawning entities
+        self.spawn_players()
+        self.spawn_ball()
+
     def run(self):
+
+        simcontroller.get_ball_pos()
+        simcontroller.get_time()
+
         self.GUI.runGUI(
             self.ball_pos,
             f"{self.time_passed_text}    Red {self.red_score} | {self.blue_score} Blue",
             self.players,
         )
+
+        if simcontroller.time_up():
+            simcontroller.end_simulation()
+
+        if simcontroller.check_goal():
+            simcontroller.reset_simulation()
+
+        if simcontroller.ball_out():
+            simcontroller.reset_simulation()
 
     def reset_timer(self):
         print("Starting time")
@@ -144,45 +166,14 @@ player_definitions = [
     },
 ]
 
-# Initializing controller
-simcontroller = SimController(max_game_time_mins=1)
 
-# Resetting values
-simcontroller.reset_timer()
+if __name__ == "__main__":
 
-# Spawning entities
-simcontroller.spawn_players()
-simcontroller.spawn_ball()
+    # Initializing controller
+    simcontroller = SimController(max_game_time_mins=0.2)
 
-blue_score = 0
-red_score = 0
+    TIME_STEP = 32
+    while simcontroller.step(TIME_STEP) != -1:
+        simcontroller.run()
 
-TIME_STEP = 32
-# Running time step
-i = 0
-while simcontroller.step(TIME_STEP) != -1:
-
-    simcontroller.get_ball_pos()
-    simcontroller.get_time()
-
-    simcontroller.run()
-
-    if simcontroller.time_up():
-        break
-
-    if simcontroller.check_goal():
-        print("GOAL!")
-        simcontroller.reset_simulation()
-
-    # if simcontroller.ball_out():
-    #     print("Ball out of field")
-    #     simcontroller.reset_simulation()
-
-    i += 1
-
-pygame.quit()
-
-simcontroller.end_simulation()
-
-print("Final Red team score: ", red_score)
-print("Final Blue team score: ", blue_score)
+    pygame.quit()
