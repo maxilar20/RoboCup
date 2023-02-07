@@ -9,24 +9,23 @@ class SimController(Supervisor):
         super().__init__()
 
         self.boundaries = boundaries
-        self.start_game_time_seconds = time.time()
-        self.max_game_time_secs = max_game_time_mins * 60
-
-        self.GUI = GUI()
-
-        self.red_score = 0
-        self.blue_score = 0
 
         self.players = [Player(self, **player) for player in player_definitions]
         self.ball = Ball(self)
 
-    def run(self):
+        self.start_game_time_seconds = time.time()
+        self.max_game_time_secs = max_game_time_mins * 60
 
-        simcontroller.get_ball_pos()
+        self.red_score = 0
+        self.blue_score = 0
+
+        self.GUI = GUI()
+
+    def run(self):
         simcontroller.get_time()
 
         score_text = f"    Red {self.red_score} | {self.blue_score} Blue"
-        self.GUI.runGUI(self.ball_pos, self.time_passed_text + score_text, self.players)
+        self.GUI.runGUI(self.ball, self.time_passed_text + score_text, self.players)
 
         if simcontroller.time_up():
             simcontroller.end_simulation()
@@ -42,35 +41,31 @@ class SimController(Supervisor):
         for player in self.players:
             player.reset()
 
-    def get_ball_pos(self):
-        self.ball_pos = self.ball.getPosition()
-
     def check_goal(self):
-        if isInside(self.ball_pos, self.boundaries["goal_red"]):
+        if isInside(self.ball.getPosition(), self.boundaries["goal_red"]):
             self.blue_score += 1
             return True
-        elif isInside(self.ball_pos, self.boundaries["goal_blue"]):
+        elif isInside(self.ball.getPosition(), self.boundaries["goal_blue"]):
             self.red_score += 1
             return True
         else:
             return False
 
     def ball_out(self):
-        return not self.isInside(self.ball_pos, self.boundaries["field"])
+        return not isInside(self.ball.getPosition(), self.boundaries["field"])
 
     def get_time(self):
         self.time_passed = time.time() - self.start_game_time_seconds
         self.time_passed_text = time.strftime("%M:%S", time.gmtime(self.time_passed))
 
     def time_up(self):
-        time_passed = time.time() - self.start_game_time_seconds
-        return time_passed > self.max_game_time_secs
+        return self.time_passed > self.max_game_time_secs
 
     def end_simulation(self):
         print("Sim ended")
 
 
-def isInside(self, pos, boundary):
+def isInside(pos, boundary):
     return (
         pos[0] > boundary[0]
         and pos[0] < boundary[2]

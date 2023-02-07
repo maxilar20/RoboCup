@@ -12,7 +12,7 @@ class GUI:
         self.top_left_GUI = (0, 0)
         self.bottom_right_GUI = (500, 350)
 
-    def runGUI(self, ball_pos, upper_text, players):
+    def runGUI(self, ball, upper_text, players):
         # Did the user click the window close button?
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
@@ -22,7 +22,7 @@ class GUI:
         self.screen.fill((255, 255, 255))
 
         self.drawField()
-        self.drawBall(ball_pos)
+        self.drawBall(ball.getPosition())
         self.drawText(upper_text)
         self.drawPlayers(players)
 
