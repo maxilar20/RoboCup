@@ -67,13 +67,9 @@ class SimController(Supervisor):
         # create a text surface object,
         # on which text is drawn on it.
         text = self.font.render("GeeksForGeeks", True, green, blue)
-
-        # create a rectangular object for the
-        # text surface object
         textRect = text.get_rect()
-
-        # set the center of the rectangular object.
         textRect.center = (X // 2, Y // 2)
+
         # Flip the display
         pygame.display.flip()
 
@@ -123,12 +119,6 @@ class SimController(Supervisor):
         self.ball_node = self.getFromDef("BALL")
 
     def goal_check(self):
-        # ball_x, ball_y = self.get_ball_pos()
-        # ball_node = self.getFromDef("BALL")
-        # ball_position = ball_node.getField("translation")
-        # ball_x = ball_position.getSFVec3f()[0]
-        # ball_y = ball_position.getSFVec3f()[1]
-
         if self.ball_pos[0] < -4.55 and self.ball_pos[1] < 0.7:
             return "blue"
         elif self.ball_pos[0] > 4.55 and self.ball_pos[1] < 0.7:
@@ -139,11 +129,6 @@ class SimController(Supervisor):
         self.ball_pos = (ball_position.getSFVec3f()[0], ball_position.getSFVec3f()[1])
 
     def ball_out(self):
-        # ball_x, ball_y = self.get_ball_pos()
-        # ball_node = self.getFromDef("BALL")
-        # ball_position = ball_node.getField("translation")
-        # ball_x = ball_position.getSFVec3f()[0]
-        # ball_y = ball_position.getSFVec3f()[1]
         return abs(self.ball_pos[1]) > 3 or abs(self.ball_pos[0]) > 4.5
 
     def time_up(self):
