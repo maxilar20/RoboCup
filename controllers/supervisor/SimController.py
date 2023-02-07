@@ -67,7 +67,7 @@ class SimController(Supervisor):
 
         # create a text surface object,
         # on which text is drawn on it.
-        text = self.font.render(self.time_passed_text, True, (0, 255, 0), (0, 0, 255))
+        text = self.font.render(self.time_passed_text, True, (255, 255, 255))
         textRect = text.get_rect()
         textRect.topleft = (10, 10)
         self.screen.blit(text, textRect)
