@@ -18,10 +18,11 @@ TIME_STEP = 32
 # Running time step
 i = 0
 while simcontroller.step(TIME_STEP) != -1:
+
     simcontroller.get_ball_pos()
     simcontroller.get_time()
 
-    simcontroller.runGUI()
+    simcontroller.run()
 
     if simcontroller.time_up():
         break

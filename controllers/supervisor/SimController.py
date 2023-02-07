@@ -1,21 +1,14 @@
 from controller import Supervisor
 from Player import *
+from GUI import *
 import time
-
-import pygame
-
-pygame.init()
 
 
 class SimController(Supervisor):
     def __init__(self, max_game_time_mins=15):
         super().__init__()
 
-        self.screen = pygame.display.set_mode([500, 350])
-        self.font = pygame.font.Font("freesansbold.ttf", 15)
-
-        self.top_left_GUI = (0, 0)
-        self.bottom_right_GUI = (500, 350)
+        self.GUI = GUI()
 
         self.start_game_time_seconds = 0
         self.max_game_time_secs = max_game_time_mins * 60
@@ -23,73 +16,11 @@ class SimController(Supervisor):
         self.red_score = 0
         self.blue_score = 0
 
-    def runGUI(self):
-        # Did the user click the window close button?
-        for event in pygame.event.get():
-            if event.type == pygame.QUIT:
-                running = False
-
-        # Fill the background with white
-        self.screen.fill((255, 255, 255))
-
-        self.drawField()
-        self.drawBall()
-        self.drawText()
-
-        # Flip the display
-        pygame.display.flip()
-
-    def drawText(self):
-        text = self.font.render(
+    def run(self):
+        self.GUI.runGUI(
+            self.ball_pos,
             f"{self.time_passed_text}    Red {self.red_score} | {self.blue_score} Blue",
-            True,
-            (255, 255, 255),
         )
-        textRect = text.get_rect()
-        textRect.topleft = (30, 10)
-        self.screen.blit(text, textRect)
-
-    def drawField(self):
-        # Green Background
-        pygame.draw.rect(
-            self.screen,
-            (0, 120, 0),
-            pygame.Rect(
-                self.top_left_GUI[0],
-                self.top_left_GUI[1],
-                self.bottom_right_GUI[0],
-                self.bottom_right_GUI[1],
-            ),
-        )
-
-        # Field lines
-        pygame.draw.rect(
-            self.screen,
-            (255, 255, 255),
-            pygame.Rect(
-                self.mapToGUI((-4.5, -3)),
-                (
-                    self.mapToGUI((4.5, 3))[0] - self.mapToGUI((-4.5, -3))[0],
-                    self.mapToGUI((4.5, 3))[1] - self.mapToGUI((-4.5, -3))[1],
-                ),
-            ),
-            2,
-        )
-
-        # Middle line
-        pygame.draw.lines(
-            self.screen,
-            (255, 255, 255),
-            True,
-            [
-                self.mapToGUI((0, -3)),
-                self.mapToGUI((0, 3)),
-            ],
-            2,
-        )
-
-    def drawBall(self):
-        pygame.draw.circle(self.screen, (0, 0, 255), self.mapToGUI(self.ball_pos), 10)
 
     def reset_timer(self):
         print("Starting time")
