@@ -146,6 +146,11 @@ class SimController(Supervisor):
         # ball_y = ball_position.getSFVec3f()[1]
         return abs(self.ball_pos[1]) > 3 or abs(self.ball_pos[0]) > 4.5
 
+    def get_time(self):
+        self.time_passed = time.time()- self.start_game_time_seconds
+        self.time_passed_text = time.strftime('%M:%S',time.gmtime(self.time_passed))
+
+
     def time_up(self):
         time_passed = time.time() - self.start_game_time_seconds
 
