@@ -35,7 +35,24 @@ class SimController(Supervisor):
         # Fill the background with white
         self.screen.fill((255, 255, 255))
 
-        # Draw field
+        self.drawField()
+        self.drawBall()
+        self.drawText()
+
+        # Flip the display
+        pygame.display.flip()
+
+    def drawText(self):
+        text = self.font.render(
+            f"{self.time_passed_text}    Red {self.red_score} | {self.blue_score} Blue",
+            True,
+            (255, 255, 255),
+        )
+        textRect = text.get_rect()
+        textRect.topleft = (10, 10)
+        self.screen.blit(text, textRect)
+
+    def drawField(self):
         pygame.draw.rect(
             self.screen,
             (0, 255, 0),
@@ -47,40 +64,21 @@ class SimController(Supervisor):
             ),
         )
 
-        # Draw Ball
-        circle_pos = (
-            self.map_range(
-                self.ball_pos[0],
-                -5,
-                5,
-                self.top_left_GUI[0],
-                self.bottom_right_GUI[0],
-            )
-            + PADDING,
-            self.map_range(
-                self.ball_pos[1],
-                -3.5,
-                3.5,
-                self.top_left_GUI[1],
-                self.bottom_right_GUI[1],
-            )
-            + PADDING,
+        pygame.draw.rect(
+            self.screen,
+            (255, 255, 255),
+            pygame.Rect(
+                self.mapToGUI((-4.5, -3)),
+                (
+                    self.mapToGUI((4.5, 3))[0] - self.mapToGUI((-4.5, -3))[0],
+                    self.mapToGUI((4.5, 3))[1] - self.mapToGUI((-4.5, -3))[1],
+                ),
+            ),
+            2,
         )
-        pygame.draw.circle(self.screen, (0, 0, 255), circle_pos, 10)
 
-        # create a text surface object,
-        # on which text is drawn on it.
-        text = self.font.render(
-            f"{self.time_passed_text}    Red {self.red_score} | {self.blue_score} Blue", 
-            True, 
-            (255, 255, 255)
-        )
-        textRect = text.get_rect()
-        textRect.topleft = (10, 10)
-        self.screen.blit(text, textRect)
-
-        # Flip the display
-        pygame.display.flip()
+    def drawBall(self):
+        pygame.draw.circle(self.screen, (0, 0, 255), self.mapToGUI(self.ball_pos), 10)
 
     def reset_timer(self):
         print("Starting time")
@@ -155,6 +153,24 @@ class SimController(Supervisor):
     def end_simulation(self):
         print("Sim ended")
 
+    def mapToGUI(self, pos):
+        return (
+            self.map_range(
+                pos[0],
+                -5,
+                5,
+                0,
+                500,
+            ),
+            self.map_range(
+                pos[1],
+                -3.5,
+                3.5,
+                0,
+                350,
+            ),
+        )
+
     def map_range(self, x, in_min, in_max, out_min, out_max):
         return (x - in_min) * (out_max - out_min) // (in_max - in_min) + out_min
 
@@ -166,7 +182,7 @@ class SimController(Supervisor):
             print("Blue team score: ", self.blue_score)
             # print("Resetting simulation in 5...")
             self.reset_simulation
-        elif self.inside_goal() == 'Red':
+        elif self.inside_goal() == "Red":
             print("Goal scored, Scores as follows: ")
             self.red_score += 1
             print("Red team score: ", self.red_score)
@@ -174,7 +190,7 @@ class SimController(Supervisor):
             # print("Resetting simulation in 5s...")
             self.reset_simulation()
         else:
-            return 
+            return
 
 
 player_definitions = [
