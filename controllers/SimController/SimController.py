@@ -8,33 +8,24 @@ class SimController(Supervisor):
     def __init__(self, max_game_time_mins=15):
         super().__init__()
 
-        self.running = True
+        self.start_game_time_seconds = time.time()
+        self.max_game_time_secs = max_game_time_mins * 60
 
         self.GUI = GUI()
-
-        self.start_game_time_seconds = 0
-        self.max_game_time_secs = max_game_time_mins * 60
 
         self.red_score = 0
         self.blue_score = 0
 
-        # Resetting values
-        self.reset_timer()
-
-        # Spawning entities
-        self.spawn_players()
-        self.spawn_ball()
+        self.players = [Player(self, **player) for player in player_definitions]
+        self.ball = Ball(self)
 
     def run(self):
 
         simcontroller.get_ball_pos()
         simcontroller.get_time()
 
-        self.GUI.runGUI(
-            self.ball_pos,
-            f"{self.time_passed_text}    Red {self.red_score} | {self.blue_score} Blue",
-            self.players,
-        )
+        score_text = f"    Red {self.red_score} | {self.blue_score} Blue"
+        self.GUI.runGUI(self.ball_pos, self.time_passed_text + score_text, self.players)
 
         if simcontroller.time_up():
             simcontroller.end_simulation()
@@ -45,20 +36,10 @@ class SimController(Supervisor):
         if simcontroller.ball_out():
             simcontroller.reset_simulation()
 
-    def reset_timer(self):
-        print("Starting time")
-        self.start_game_time_seconds = time.time()
-
     def reset_simulation(self):
         self.ball.reset()
         for player in self.players:
             player.reset()
-
-    def spawn_players(self):
-        self.players = [Player(self, **player) for player in player_definitions]
-
-    def spawn_ball(self):
-        self.ball = Ball(self)
 
     def inside_goal(self):
         if self.ball_pos[0] < -4.55 and self.ball_pos[1] < 0.7:
@@ -82,27 +63,6 @@ class SimController(Supervisor):
 
     def end_simulation(self):
         print("Sim ended")
-
-    def mapToGUI(self, pos):
-        return (
-            self.map_range(
-                pos[0],
-                -5,
-                5,
-                0,
-                500,
-            ),
-            self.map_range(
-                pos[1],
-                -3.5,
-                3.5,
-                0,
-                350,
-            ),
-        )
-
-    def map_range(self, x, in_min, in_max, out_min, out_max):
-        return (x - in_min) * (out_max - out_min) // (in_max - in_min) + out_min
 
     def check_goal(self):
         if self.inside_goal() == "blue":
@@ -170,7 +130,7 @@ player_definitions = [
 if __name__ == "__main__":
 
     # Initializing controller
-    simcontroller = SimController(max_game_time_mins=0.2)
+    simcontroller = SimController(max_game_time_mins=15)
 
     TIME_STEP = 32
     while simcontroller.step(TIME_STEP) != -1:
