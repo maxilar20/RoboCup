@@ -15,7 +15,7 @@ class SimController(Supervisor):
         super().__init__()
 
         self.screen = pygame.display.set_mode([500, 350])
-        self.font = pygame.font.Font("freesansbold.ttf", 20)
+        self.font = pygame.font.Font("freesansbold.ttf", 15)
 
         self.top_left_GUI = (0, 0)
         self.bottom_right_GUI = (500, 350)
@@ -49,13 +49,13 @@ class SimController(Supervisor):
             (255, 255, 255),
         )
         textRect = text.get_rect()
-        textRect.topleft = (10, 10)
+        textRect.topleft = (30, 10)
         self.screen.blit(text, textRect)
 
     def drawField(self):
         pygame.draw.rect(
             self.screen,
-            (0, 255, 0),
+            (0, 120, 0),
             pygame.Rect(
                 self.top_left_GUI[0],
                 self.top_left_GUI[1],
@@ -144,10 +144,6 @@ class SimController(Supervisor):
 
     def time_up(self):
         time_passed = time.time() - self.start_game_time_seconds
-
-        # print(f"Game Time: {time.strftime('%M:%S',time.gmtime(time_passed))}")
-        # print(f"Checking if time up")
-
         return time_passed > self.max_game_time_secs
 
     def end_simulation(self):
@@ -176,21 +172,13 @@ class SimController(Supervisor):
 
     def check_goal(self):
         if self.inside_goal() == "blue":
-            print("Goal scored, Scores as follows: ")
             self.blue_score += 1
-            print("Red team score: ", self.red_score)
-            print("Blue team score: ", self.blue_score)
-            # print("Resetting simulation in 5...")
-            self.reset_simulation
-        elif self.inside_goal() == "Red":
-            print("Goal scored, Scores as follows: ")
+            return True
+        elif self.inside_goal() == "red":
             self.red_score += 1
-            print("Red team score: ", self.red_score)
-            print("Blue team score: ", self.blue_score)
-            # print("Resetting simulation in 5s...")
-            self.reset_simulation()
+            return True
         else:
-            return
+            return False
 
 
 player_definitions = [
