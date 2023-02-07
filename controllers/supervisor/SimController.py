@@ -45,7 +45,6 @@ class SimController(Supervisor):
         )
 
         # Draw Ball
-        self.ball_pos = (3, 0)
         circle_pos = (
             self.map_range(
                 self.ball_pos[0],
@@ -66,9 +65,10 @@ class SimController(Supervisor):
 
         # create a text surface object,
         # on which text is drawn on it.
-        text = self.font.render("GeeksForGeeks", True, green, blue)
+        text = self.font.render("GeeksForGeeks", True, (0, 255, 0), (0, 0, 255))
         textRect = text.get_rect()
-        textRect.center = (X // 2, Y // 2)
+        textRect.center = ((PADDING) // 2, (PADDING + 50) // 2)
+        self.screen.blit(text, textRect)
 
         # Flip the display
         pygame.display.flip()
