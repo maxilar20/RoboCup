@@ -26,23 +26,25 @@ while simcontroller.step(TIME_STEP) != -1:
     if simcontroller.time_up():
         break
 
-    if simcontroller.goal_check() == "blue":
-        print("Goal scored, Scores as follows: ")
-        blue_score += 1
-        print("Red team score: ", red_score)
-        print("Blue team score: ", blue_score)
-        # print("Resetting simulation in 5...")
-        simcontroller.reset_simulation()
+    simcontroller.check_goal()
 
-    elif simcontroller.goal_check() == "red":
-        print("Goal scored, Scores as follows: ")
-        red_score += 1
-        print("Red team score: ", red_score)
-        print("Blue team score: ", blue_score)
-        # print("Resetting simulation in 5s...")
-        simcontroller.reset_simulation()
+    # if simcontroller.goal_check() == "blue":
+    #     print("Goal scored, Scores as follows: ")
+    #     blue_score += 1
+    #     print("Red team score: ", red_score)
+    #     print("Blue team score: ", blue_score)
+    #     # print("Resetting simulation in 5...")
+    #     simcontroller.reset_simulation()
 
-    elif simcontroller.ball_out():
+    # elif simcontroller.goal_check() == "red":
+    #     print("Goal scored, Scores as follows: ")
+    #     red_score += 1
+    #     print("Red team score: ", red_score)
+    #     print("Blue team score: ", blue_score)
+    #     # print("Resetting simulation in 5s...")
+    #     simcontroller.reset_simulation()
+
+    if simcontroller.ball_out():
         print("Ball out of field")
         simcontroller.reset_simulation()
 

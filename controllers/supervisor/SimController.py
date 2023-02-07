@@ -15,13 +15,16 @@ class SimController(Supervisor):
         super().__init__()
 
         self.screen = pygame.display.set_mode([500, 350])
-        self.font = pygame.font.Font("freesansbold.ttf", 32)
+        self.font = pygame.font.Font("freesansbold.ttf", 20)
 
         self.top_left_GUI = (0, 0)
         self.bottom_right_GUI = (500, 350)
 
         self.start_game_time_seconds = 0
         self.max_game_time_secs = max_game_time_mins * 60
+
+        self.red_score = 0
+        self.blue_score = 0
 
     def runGUI(self):
         # Did the user click the window close button?
@@ -67,7 +70,11 @@ class SimController(Supervisor):
 
         # create a text surface object,
         # on which text is drawn on it.
-        text = self.font.render(self.time_passed_text, True, (255, 255, 255))
+        text = self.font.render(
+            f"{self.time_passed_text}    Red {self.red_score} | {self.blue_score} Blue", 
+            True, 
+            (255, 255, 255)
+        )
         textRect = text.get_rect()
         textRect.topleft = (10, 10)
         self.screen.blit(text, textRect)
@@ -120,7 +127,7 @@ class SimController(Supervisor):
         )
         self.ball_node = self.getFromDef("BALL")
 
-    def goal_check(self):
+    def inside_goal(self):
         if self.ball_pos[0] < -4.55 and self.ball_pos[1] < 0.7:
             return "blue"
         elif self.ball_pos[0] > 4.55 and self.ball_pos[1] < 0.7:
@@ -150,6 +157,24 @@ class SimController(Supervisor):
 
     def map_range(self, x, in_min, in_max, out_min, out_max):
         return (x - in_min) * (out_max - out_min) // (in_max - in_min) + out_min
+
+    def check_goal(self):
+        if self.inside_goal() == "blue":
+            print("Goal scored, Scores as follows: ")
+            self.blue_score += 1
+            print("Red team score: ", self.red_score)
+            print("Blue team score: ", self.blue_score)
+            # print("Resetting simulation in 5...")
+            self.reset_simulation
+        elif self.inside_goal() == 'Red':
+            print("Goal scored, Scores as follows: ")
+            self.red_score += 1
+            print("Red team score: ", self.red_score)
+            print("Blue team score: ", self.blue_score)
+            # print("Resetting simulation in 5s...")
+            self.reset_simulation()
+        else:
+            return 
 
 
 player_definitions = [
