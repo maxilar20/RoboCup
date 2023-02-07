@@ -53,6 +53,7 @@ class SimController(Supervisor):
         self.screen.blit(text, textRect)
 
     def drawField(self):
+        # Green Background
         pygame.draw.rect(
             self.screen,
             (0, 120, 0),
@@ -64,6 +65,7 @@ class SimController(Supervisor):
             ),
         )
 
+        # Field lines
         pygame.draw.rect(
             self.screen,
             (255, 255, 255),
@@ -74,6 +76,18 @@ class SimController(Supervisor):
                     self.mapToGUI((4.5, 3))[1] - self.mapToGUI((-4.5, -3))[1],
                 ),
             ),
+            2,
+        )
+
+        # Middle line
+        pygame.draw.lines(
+            self.screen,
+            (255, 255, 255),
+            True,
+            [
+                self.mapToGUI((0, -3)),
+                self.mapToGUI((0, 3)),
+            ],
             2,
         )
 
