@@ -12,10 +12,9 @@ class Nao(Robot):
         self.backwards = Motion("./motions/Backwards.motion")
         self.sideStepLeft = Motion("./motions/SideStepLeft.motion")
         self.sideStepRight = Motion("./motions/SideStepRight.motion")
-        self.turnLeft60 = Motion("./motions/TurnLeft40.motion")
-        self.turnRight60 = Motion("./motions/TurnRight40.motion")
-        self.taiChi = Motion("./motions/TaiChi.motion")
-        self.wipeForhead = Motion("./motions/WipeForehead.motion")
+        self.turnLeft = Motion("./motions/TurnLeft40.motion")
+        self.turnRight = Motion("./motions/TurnRight40.motion")
+        self.shoot = Motion("./motions/Shoot.motion")
 
     def startMotion(self, motion):
         # interrupt current motion
@@ -150,8 +149,6 @@ class Nao(Robot):
             if key > 0:
                 break
 
-        self.handWave.setLoop(False)
-
         while True:
             key = self.keyboard.getKey()
 
@@ -165,9 +162,11 @@ class Nao(Robot):
                 elif key == Keyboard.DOWN:
                     self.startMotion(self.backwards)
                 elif key == Keyboard.LEFT | Keyboard.SHIFT:
-                    self.startMotion(self.turnLeft60)
+                    self.startMotion(self.turnLeft)
                 elif key == Keyboard.RIGHT | Keyboard.SHIFT:
-                    self.startMotion(self.turnRight60)
+                    self.startMotion(self.turnRight)
+                elif key == ord(" "):
+                    self.startMotion(self.shoot)
 
             if robot.step(self.timeStep) == -1:
                 break
