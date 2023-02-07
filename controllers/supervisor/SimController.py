@@ -32,6 +32,7 @@ class SimController(Supervisor):
         # Fill the background with white
         self.screen.fill((255, 255, 255))
 
+        # Draw field
         pygame.draw.rect(
             self.screen,
             (0, 255, 0),
@@ -42,6 +43,8 @@ class SimController(Supervisor):
                 self.bottom_right_GUI[1],
             ),
         )
+
+        # Draw Ball
         self.ball_pos = (3, 0)
         circle_pos = (
             self.map_range(
@@ -59,10 +62,18 @@ class SimController(Supervisor):
                 self.bottom_right_GUI[1],
             ),
         )
-
-        # Draw a solid blue circle in the center
         pygame.draw.circle(self.screen, (0, 0, 255), circle_pos, 10)
 
+        # create a text surface object,
+        # on which text is drawn on it.
+        text = font.render("GeeksForGeeks", True, green, blue)
+
+        # create a rectangular object for the
+        # text surface object
+        textRect = text.get_rect()
+
+        # set the center of the rectangular object.
+        textRect.center = (X // 2, Y // 2)
         # Flip the display
         pygame.display.flip()
 
