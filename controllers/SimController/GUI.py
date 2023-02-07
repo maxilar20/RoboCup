@@ -3,25 +3,20 @@ import numpy as np
 
 
 class GUI:
-    def __init__(self):
+    def __init__(self, window_size=(500, 350)):
         pygame.init()
 
-        self.screen = pygame.display.set_mode([500, 350])
+        self.screen = pygame.display.set_mode(window_size)
         self.font = pygame.font.Font("freesansbold.ttf", 15)
 
-        self.top_left_GUI = (0, 0)
-        self.bottom_right_GUI = (500, 350)
-
-    def runGUI(self, ball, upper_text, players):
-        # Did the user click the window close button?
+    def runGUI(self, ball, players, upper_text, boundaries):
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 running = False
 
-        # Fill the background with white
-        self.screen.fill((255, 255, 255))
+        self.screen.fill((0, 120, 0))
 
-        self.drawField()
+        self.drawField(boundaries)
         self.drawBall(ball.getPosition())
         self.drawText(upper_text)
         self.drawPlayers(players)
@@ -39,29 +34,19 @@ class GUI:
         textRect.topleft = (30, 10)
         self.screen.blit(text, textRect)
 
-    def drawField(self):
-        # Green Background
-        pygame.draw.rect(
-            self.screen,
-            (0, 120, 0),
-            pygame.Rect(
-                self.top_left_GUI[0],
-                self.top_left_GUI[1],
-                self.bottom_right_GUI[0],
-                self.bottom_right_GUI[1],
-            ),
-        )
-
-        # Field lines
-        pygame.draw.rect(
-            self.screen,
-            (255, 255, 255),
-            pygame.Rect(
-                self.mapToGUI((4.5, -3)),
-                np.array(self.mapToGUI((-4.5, 3))) - np.array(self.mapToGUI((4.5, -3))),
-            ),
-            2,
-        )
+    def drawField(self, boundaries):
+        for boundary in boundaries.values():
+            # Field lines
+            pygame.draw.rect(
+                self.screen,
+                (255, 255, 255),
+                pygame.Rect(
+                    self.mapToGUI((boundary[0], boundary[1])),
+                    np.array(self.mapToGUI((boundary[2], boundary[3])))
+                    - np.array(self.mapToGUI((boundary[0], boundary[1]))),
+                ),
+                2,
+            )
 
         # Middle line
         pygame.draw.lines(
@@ -75,7 +60,7 @@ class GUI:
             2,
         )
 
-        # Field lines
+        # Field circle line
         pygame.draw.circle(
             self.screen,
             (255, 255, 255),
@@ -84,7 +69,7 @@ class GUI:
             2,
         )
 
-    def drawBall(self, ball_pos, color=(0, 0, 255), size=5):
+    def drawBall(self, ball_pos, color=(255, 255, 255), size=5):
         pygame.draw.circle(self.screen, color, self.mapToGUI(ball_pos), size)
 
     def drawPlayers(self, players):
@@ -122,8 +107,8 @@ class GUI:
         return (
             self.map_range(
                 pos[0],
-                5,
                 -5,
+                5,
                 0,
                 500,
             ),

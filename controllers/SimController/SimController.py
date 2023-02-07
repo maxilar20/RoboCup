@@ -25,7 +25,9 @@ class SimController(Supervisor):
         simcontroller.get_time()
 
         score_text = f"    Red {self.red_score} | {self.blue_score} Blue"
-        self.GUI.runGUI(self.ball, self.time_passed_text + score_text, self.players)
+        self.GUI.runGUI(
+            self.ball, self.players, self.time_passed_text + score_text, self.boundaries
+        )
 
         if simcontroller.time_up():
             simcontroller.end_simulation()
@@ -35,6 +37,8 @@ class SimController(Supervisor):
 
         if simcontroller.ball_out():
             simcontroller.reset_simulation()
+
+        # TODO: Check if there's been a fault
 
     def reset_simulation(self):
         self.ball.reset()
@@ -129,6 +133,8 @@ boundaries = {
     "goal_red": (-5, -0.7, -4.5, 0.7),
     "goal_blue": (4.5, -0.7, 5, 0.7),
     "field": (-4.5, -3, 4.5, 3),
+    "penalty_red": (-4.5, -1, -4, 1),
+    "penalty_blue": (4, -1, 4.5, 1),
 }
 
 if __name__ == "__main__":
