@@ -1,20 +1,3 @@
-# Copyright 1996-2022 Cyberbotics Ltd.
-#
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-#     http://www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
-
-"""Example of Python controller for Nao robot.
-   This demonstrates how to access sensors and actuators"""
-
 from controller import Robot, Keyboard, Motion
 import os
 
@@ -43,163 +26,10 @@ class Nao(Robot):
         motion.play()
         self.currentlyPlaying = motion
 
-    # the accelerometer axes are oriented as on the real robot
-    # however the sign of the returned values may be opposite
-    def printAcceleration(self):
-        acc = self.accelerometer.getValues()
-        print("----------accelerometer----------")
-        print("acceleration: [ x y z ] = [%f %f %f]" % (acc[0], acc[1], acc[2]))
-
-    # the gyro axes are oriented as on the real robot
-    # however the sign of the returned values may be opposite
-    def printGyro(self):
-        vel = self.gyro.getValues()
-        print("----------gyro----------")
-        # z value is meaningless due to the orientation of the Gyro
-        print("angular velocity: [ x y ] = [%f %f]" % (vel[0], vel[1]))
-
     def printGps(self):
         p = self.gps.getValues()
         print("----------gps----------")
         print("position: [ x y z ] = [%f %f %f]" % (p[0], p[1], p[2]))
-
-    # the InertialUnit roll/pitch angles are equal to naoqi's AngleX/AngleY
-    def printInertialUnit(self):
-        rpy = self.inertialUnit.getRollPitchYaw()
-        print("----------inertial unit----------")
-        print("roll/pitch/yaw: [%f %f %f]" % (rpy[0], rpy[1], rpy[2]))
-
-    def printFootSensors(self):
-        fsv = []  # force sensor values
-
-        fsv.append(self.fsr[0].getValues())
-        fsv.append(self.fsr[1].getValues())
-
-        left = []
-        right = []
-
-        newtonsLeft = 0
-        newtonsRight = 0
-
-        # The coefficients were calibrated against the real
-        # robot so as to obtain realistic sensor values.
-        left.append(
-            fsv[0][2] / 3.4 + 1.5 * fsv[0][0] + 1.15 * fsv[0][1]
-        )  # Left Foot Front Left
-        left.append(
-            fsv[0][2] / 3.4 + 1.5 * fsv[0][0] - 1.15 * fsv[0][1]
-        )  # Left Foot Front Right
-        left.append(
-            fsv[0][2] / 3.4 - 1.5 * fsv[0][0] - 1.15 * fsv[0][1]
-        )  # Left Foot Rear Right
-        left.append(
-            fsv[0][2] / 3.4 - 1.5 * fsv[0][0] + 1.15 * fsv[0][1]
-        )  # Left Foot Rear Left
-
-        right.append(
-            fsv[1][2] / 3.4 + 1.5 * fsv[1][0] + 1.15 * fsv[1][1]
-        )  # Right Foot Front Left
-        right.append(
-            fsv[1][2] / 3.4 + 1.5 * fsv[1][0] - 1.15 * fsv[1][1]
-        )  # Right Foot Front Right
-        right.append(
-            fsv[1][2] / 3.4 - 1.5 * fsv[1][0] - 1.15 * fsv[1][1]
-        )  # Right Foot Rear Right
-        right.append(
-            fsv[1][2] / 3.4 - 1.5 * fsv[1][0] + 1.15 * fsv[1][1]
-        )  # Right Foot Rear Left
-
-        for i in range(0, len(left)):
-            left[i] = max(min(left[i], 25), 0)
-            right[i] = max(min(right[i], 25), 0)
-            newtonsLeft += left[i]
-            newtonsRight += right[i]
-
-        print("----------foot sensors----------")
-        print("+ left ---- right +")
-        print("+-------+ +-------+")
-        print(
-            "|"
-            + str(round(left[0], 1))
-            + "  "
-            + str(round(left[1], 1))
-            + "| |"
-            + str(round(right[0], 1))
-            + "  "
-            + str(round(right[1], 1))
-            + "|  front"
-        )
-        print("| ----- | | ----- |")
-        print(
-            "|"
-            + str(round(left[3], 1))
-            + "  "
-            + str(round(left[2], 1))
-            + "| |"
-            + str(round(right[3], 1))
-            + "  "
-            + str(round(right[2], 1))
-            + "|  back"
-        )
-        print("+-------+ +-------+")
-        print(
-            "total: %f Newtons, %f kilograms"
-            % ((newtonsLeft + newtonsRight), ((newtonsLeft + newtonsRight) / 9.81))
-        )
-
-    def printFootBumpers(self):
-        ll = self.lfootlbumper.getValue()
-        lr = self.lfootrbumper.getValue()
-        rl = self.rfootlbumper.getValue()
-        rr = self.rfootrbumper.getValue()
-        print("----------foot bumpers----------")
-        print("+ left ------ right +")
-        print("+--------+ +--------+")
-        print("|" + str(ll) + "  " + str(lr) + "| |" + str(rl) + "  " + str(rr) + "|")
-        print("|        | |        |")
-        print("|        | |        |")
-        print("+--------+ +--------+")
-
-    def printUltrasoundSensors(self):
-        dist = []
-        for i in range(0, len(self.us)):
-            dist.append(self.us[i].getValue())
-
-        print("-----ultrasound sensors-----")
-        print("left: %f m, right %f m" % (dist[0], dist[1]))
-
-    def printCameraImage(self, camera):
-        scaled = 2  # defines by which factor the image is subsampled
-        width = camera.getWidth()
-        height = camera.getHeight()
-
-        # read rgb pixel values from the camera
-        image = camera.getImage()
-
-        print("----------camera image (gray levels)---------")
-        print(
-            "original resolution: %d x %d, scaled to %d x %f"
-            % (width, height, width / scaled, height / scaled)
-        )
-
-        for y in range(0, height // scaled):
-            line = ""
-            for x in range(0, width // scaled):
-                gray = (
-                    camera.imageGetGray(image, width, x * scaled, y * scaled) * 9 / 255
-                )  # rescale between 0 and 9
-                line = line + str(int(gray))
-            print(line)
-
-    def setAllLedsColor(self, rgb):
-        # these leds take RGB values
-        for i in range(0, len(self.leds)):
-            self.leds[i].set(rgb)
-
-        # ear leds are single color (blue)
-        # and take values between 0 - 255
-        self.leds[5].set(rgb & 0xFF)
-        self.leds[6].set(rgb & 0xFF)
 
     def setHandsAngle(self, angle):
         for i in range(0, self.PHALANX_MAX):
@@ -213,28 +43,6 @@ class Nao(Robot):
                 self.rphalanx[i].setPosition(clampedAngle)
             if len(self.lphalanx) > i and self.lphalanx[i] is not None:
                 self.lphalanx[i].setPosition(clampedAngle)
-
-    def printHelp(self):
-        print("----------nao_demo_python----------")
-        print("Use the keyboard to control the robots (one at a time)")
-        print("(The 3D window need to be focused)")
-        print("[Up][Down]: move one step forward/backwards")
-        print("[<-][->]: side step left/right")
-        print("[Shift] + [<-][->]: turn left/right")
-        print("[U]: print ultrasound sensors")
-        print("[A]: print accelerometers")
-        print("[G]: print gyros")
-        print("[S]: print gps")
-        print("[I]: print inertial unit (roll/pitch/yaw)")
-        print("[F]: print foot sensors")
-        print("[B]: print foot bumpers")
-        print("[Home][End]: print scaled top/bottom camera image")
-        print("[PageUp][PageDown]: open/close hands")
-        print("[7][8][9]: change all leds RGB color")
-        print("[0]: turn all leds off")
-        print("[T]: perform Tai chi movements")
-        print("[W]: wipe its forehead")
-        print("[H]: print this help message")
 
     def findAndEnableDevices(self):
         # get the time step of the current world.
@@ -321,15 +129,17 @@ class Nao(Robot):
 
     def __init__(self):
         Robot.__init__(self)
+
+        print(self.name)
+
         self.currentlyPlaying = False
 
         # initialize stuff
         self.findAndEnableDevices()
         self.loadMotionFiles()
-        # self.printHelp()
 
     def run(self):
-        self.handWave.setLoop(True)
+        self.handWave.setLoop(False)
         self.handWave.play()
         self.currentlyPlaying = self.handWave
 
@@ -345,61 +155,23 @@ class Nao(Robot):
         while True:
             key = self.keyboard.getKey()
 
-            if key == Keyboard.LEFT:
-                self.startMotion(self.sideStepLeft)
-            elif key == Keyboard.RIGHT:
-                self.startMotion(self.sideStepRight)
-            elif key == Keyboard.UP:
-                self.startMotion(self.forwards)
-            elif key == Keyboard.DOWN:
-                self.startMotion(self.backwards)
-            elif key == Keyboard.LEFT | Keyboard.SHIFT:
-                self.startMotion(self.turnLeft60)
-            elif key == Keyboard.RIGHT | Keyboard.SHIFT:
-                self.startMotion(self.turnRight60)
-            elif key == ord("A"):
-                self.printAcceleration()
-            elif key == ord("G"):
-                self.printGyro()
-            elif key == ord("S"):
-                self.printGps()
-            elif key == ord("I"):
-                self.printInertialUnit()
-            elif key == ord("F"):
-                self.printFootSensors()
-            elif key == ord("B"):
-                self.printFootBumpers()
-            elif key == ord("U"):
-                self.printUltrasoundSensors()
-            elif key == ord("T"):
-                self.startMotion(self.taiChi)
-            elif key == ord("W"):
-                self.startMotion(self.wipeForhead)
-            elif key == Keyboard.HOME:
-                self.printCameraImage(self.cameraTop)
-            elif key == Keyboard.END:
-                self.printCameraImage(self.cameraBottom)
-            elif key == Keyboard.PAGEUP:
-                self.setHandsAngle(0.96)
-            elif key == Keyboard.PAGEDOWN:
-                self.setHandsAngle(0.0)
-            elif key == ord("7"):
-                self.setAllLedsColor(0xFF0000)  # red
-            elif key == ord("8"):
-                self.setAllLedsColor(0x00FF00)  # green
-            elif key == ord("9"):
-                self.setAllLedsColor(0x0000FF)  # blue
-            elif key == ord("0"):
-                self.setAllLedsColor(0x000000)  # off
-            elif key == ord("H"):
-                self.printHelp()
+            if self.name == "NAO(3)":
+                if key == Keyboard.LEFT:
+                    self.startMotion(self.sideStepLeft)
+                elif key == Keyboard.RIGHT:
+                    self.startMotion(self.sideStepRight)
+                elif key == Keyboard.UP:
+                    self.startMotion(self.forwards)
+                elif key == Keyboard.DOWN:
+                    self.startMotion(self.backwards)
+                elif key == Keyboard.LEFT | Keyboard.SHIFT:
+                    self.startMotion(self.turnLeft60)
+                elif key == Keyboard.RIGHT | Keyboard.SHIFT:
+                    self.startMotion(self.turnRight60)
 
             if robot.step(self.timeStep) == -1:
                 break
 
 
-# create the Robot instance and run main loop
-os.environ["WEBOTS_CONTROLLER_URL"] = "ipc://1234/NAO%281%29"
-print(os.environ.get("WEBOTS_CONTROLLER_URL"))
 robot = Nao()
 robot.run()
