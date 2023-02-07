@@ -6,9 +6,6 @@ import pygame
 
 pygame.init()
 
-PADDING = 0
-SCALE = 1
-
 
 class SimController(Supervisor):
     def __init__(self, max_game_time_mins=15):
