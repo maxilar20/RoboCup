@@ -66,7 +66,7 @@ class SimController(Supervisor):
 
         # create a text surface object,
         # on which text is drawn on it.
-        text = font.render("GeeksForGeeks", True, green, blue)
+        text = self.font.render("GeeksForGeeks", True, green, blue)
 
         # create a rectangular object for the
         # text surface object
@@ -120,7 +120,7 @@ class SimController(Supervisor):
         children_field.importMFNodeFromString(
             -1, "DEF BALL RobocupSoccerBall { translation 0 0 1 }"
         )
-        ball_node = self.getFromDef("BALL")
+        self.ball_node = self.getFromDef("BALL")
 
     def goal_check(self):
         # ball_x, ball_y = self.get_ball_pos()
@@ -135,8 +135,7 @@ class SimController(Supervisor):
             return "red"
 
     def get_ball_pos(self):
-        ball_node = self.getFromDef("BALL")
-        ball_position = ball_node.getField("translation")
+        ball_position = self.ball_node.getField("translation")
         self.ball_pos = (ball_position.getSFVec3f()[0], ball_position.getSFVec3f()[1])
 
     def ball_out(self):
