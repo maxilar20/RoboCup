@@ -1,4 +1,5 @@
 import pygame
+import numpy as np
 
 
 class GUI:
@@ -11,7 +12,7 @@ class GUI:
         self.top_left_GUI = (0, 0)
         self.bottom_right_GUI = (500, 350)
 
-    def runGUI(self, ball_pos, upper_text):
+    def runGUI(self, ball_pos, upper_text, players):
         # Did the user click the window close button?
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
@@ -23,6 +24,7 @@ class GUI:
         self.drawField()
         self.drawBall(ball_pos)
         self.drawText(upper_text)
+        self.drawPlayers(players)
 
         # Flip the display
         pygame.display.flip()
@@ -55,11 +57,8 @@ class GUI:
             self.screen,
             (255, 255, 255),
             pygame.Rect(
-                self.mapToGUI((-4.5, -3)),
-                (
-                    self.mapToGUI((4.5, 3))[0] - self.mapToGUI((-4.5, -3))[0],
-                    self.mapToGUI((4.5, 3))[1] - self.mapToGUI((-4.5, -3))[1],
-                ),
+                self.mapToGUI((4.5, -3)),
+                np.array(self.mapToGUI((-4.5, 3))) - np.array(self.mapToGUI((4.5, -3))),
             ),
             2,
         )
@@ -76,15 +75,55 @@ class GUI:
             2,
         )
 
-    def drawBall(self, ball_pos):
-        pygame.draw.circle(self.screen, (0, 0, 255), self.mapToGUI(ball_pos), 10)
+        # Field lines
+        pygame.draw.circle(
+            self.screen,
+            (255, 255, 255),
+            self.mapToGUI((0, 0)),
+            self.scaleToGUI(0.85),
+            2,
+        )
+
+    def drawBall(self, ball_pos, color=(0, 0, 255), size=5):
+        pygame.draw.circle(self.screen, color, self.mapToGUI(ball_pos), size)
+
+    def drawPlayers(self, players):
+        for player in players:
+            if player.team == "red":
+                color = (255, 0, 0)
+            elif player.team == "blue":
+                color = (0, 0, 255)
+
+            self.drawBall(player.getPosition(), color=color, size=10)
+            self.drawBall(
+                np.array(player.getPosition())
+                + np.array(
+                    (
+                        0.1 * np.cos(player.getOrientation() + 1),
+                        0.1 * np.sin(player.getOrientation() + 1),
+                    )
+                ),
+                color=(0, 255, 0),
+                size=3,
+            )
+            self.drawBall(
+                np.array(player.getPosition())
+                + np.array(
+                    (
+                        0.1 * np.cos(player.getOrientation() - 1),
+                        0.1 * np.sin(player.getOrientation() - 1),
+                    )
+                ),
+                color=(0, 255, 0),
+                size=3,
+            )
 
     def mapToGUI(self, pos):
         return (
             self.map_range(
                 pos[0],
-                -5,
                 5,
+                -5,
                 0,
                 500,
             ),
@@ -96,6 +135,9 @@ class GUI:
                 350,
             ),
         )
+
+    def scaleToGUI(self, pos):
+        return self.map_range(pos, 0, 5, 0, 255)
 
     def map_range(self, x, in_min, in_max, out_min, out_max):
         return (x - in_min) * (out_max - out_min) // (in_max - in_min) + out_min

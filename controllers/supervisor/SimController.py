@@ -20,6 +20,7 @@ class SimController(Supervisor):
         self.GUI.runGUI(
             self.ball_pos,
             f"{self.time_passed_text}    Red {self.red_score} | {self.blue_score} Blue",
+            self.players,
         )
 
     def reset_timer(self):
