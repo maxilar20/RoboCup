@@ -5,9 +5,10 @@ import time
 
 
 class SimController(Supervisor):
-    def __init__(self, max_game_time_mins=15):
+    def __init__(self, boundaries, max_game_time_mins=15):
         super().__init__()
 
+        self.boundaries = boundaries
         self.start_game_time_seconds = time.time()
         self.max_game_time_secs = max_game_time_mins * 60
 
@@ -41,17 +42,21 @@ class SimController(Supervisor):
         for player in self.players:
             player.reset()
 
-    def inside_goal(self):
-        if self.ball_pos[0] < -4.55 and self.ball_pos[1] < 0.7:
-            return "blue"
-        elif self.ball_pos[0] > 4.55 and self.ball_pos[1] < 0.7:
-            return "red"
-
     def get_ball_pos(self):
         self.ball_pos = self.ball.getPosition()
 
+    def check_goal(self):
+        if isInside(self.ball_pos, self.boundaries["goal_red"]):
+            self.blue_score += 1
+            return True
+        elif isInside(self.ball_pos, self.boundaries["goal_blue"]):
+            self.red_score += 1
+            return True
+        else:
+            return False
+
     def ball_out(self):
-        return abs(self.ball_pos[1]) > 3 or abs(self.ball_pos[0]) > 4.5
+        return not self.isInside(self.ball_pos, self.boundaries["field"])
 
     def get_time(self):
         self.time_passed = time.time() - self.start_game_time_seconds
@@ -64,15 +69,14 @@ class SimController(Supervisor):
     def end_simulation(self):
         print("Sim ended")
 
-    def check_goal(self):
-        if self.inside_goal() == "blue":
-            self.blue_score += 1
-            return True
-        elif self.inside_goal() == "red":
-            self.red_score += 1
-            return True
-        else:
-            return False
+
+def isInside(self, pos, boundary):
+    return (
+        pos[0] > boundary[0]
+        and pos[0] < boundary[2]
+        and pos[1] > boundary[1]
+        and pos[1] < boundary[3]
+    )
 
 
 player_definitions = [
@@ -126,11 +130,16 @@ player_definitions = [
     },
 ]
 
+boundaries = {
+    "goal_red": (-5, -0.7, -4.5, 0.7),
+    "goal_blue": (4.5, -0.7, 5, 0.7),
+    "field": (-4.5, -3, 4.5, 3),
+}
 
 if __name__ == "__main__":
 
     # Initializing controller
-    simcontroller = SimController(max_game_time_mins=15)
+    simcontroller = SimController(boundaries, max_game_time_mins=15)
 
     TIME_STEP = 32
     while simcontroller.step(TIME_STEP) != -1:
