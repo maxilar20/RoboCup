@@ -28,7 +28,7 @@ class GUI:
             wintypes.INT,
             wintypes.UINT,
         ]
-        user32.SetWindowPos(hwnd, -1, 600, 300, 0, 0, 0x0001)
+        user32.SetWindowPos(hwnd, -1, 0, 0, 0, 0, 0x0001)
 
         self.font = pygame.font.Font("freesansbold.ttf", 15)
 
