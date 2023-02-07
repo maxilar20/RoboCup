@@ -73,8 +73,8 @@ def isInside(pos, boundary):
     return (
         pos[0] > boundary[0]
         and pos[0] < boundary[2]
-        and pos[1] > boundary[1]
-        and pos[1] < boundary[3]
+        and pos[1] < boundary[1]
+        and pos[1] > boundary[3]
     )
 
 
@@ -130,11 +130,11 @@ player_definitions = [
 ]
 
 boundaries = {
-    "goal_red": (-5, -0.7, -4.5, 0.7),
-    "goal_blue": (4.5, -0.7, 5, 0.7),
-    "field": (-4.5, -3, 4.5, 3),
-    "penalty_red": (-4.5, -1, -4, 1),
-    "penalty_blue": (4, -1, 4.5, 1),
+    "goal_red": (-5, 0.7, -4.5, -0.7),
+    "goal_blue": (4.5, 0.7, 5, -0.7),
+    "field": (-4.5, 3, 4.5, -3),
+    "penalty_red": (-4.5, 1, -4, -1),
+    "penalty_blue": (4, 1, 4.5, -1),
 }
 
 if __name__ == "__main__":

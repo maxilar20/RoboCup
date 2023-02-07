@@ -1,19 +1,38 @@
 import pygame
 import numpy as np
+import ctypes
+from ctypes import wintypes
 
 
 class GUI:
-    def __init__(self, window_size=(500, 350)):
+    def __init__(self, window_size=(334, 230)):
         pygame.init()
 
-        self.screen = pygame.display.set_mode(window_size)
+        self.window_size = window_size
+
+        self.screen = pygame.display.set_mode(self.window_size)
+        pygame.display.set_caption("Robocup")
+        icon = pygame.image.load("icon.png")
+        pygame.display.set_icon(icon)
+
+        hwnd = pygame.display.get_wm_info()["window"]
+
+        user32 = ctypes.WinDLL("user32")
+        user32.SetWindowPos.restype = wintypes.HWND
+        user32.SetWindowPos.argtypes = [
+            wintypes.HWND,
+            wintypes.HWND,
+            wintypes.INT,
+            wintypes.INT,
+            wintypes.INT,
+            wintypes.INT,
+            wintypes.UINT,
+        ]
+        user32.SetWindowPos(hwnd, -1, 600, 300, 0, 0, 0x0001)
+
         self.font = pygame.font.Font("freesansbold.ttf", 15)
 
     def runGUI(self, ball, players, upper_text, boundaries):
-        for event in pygame.event.get():
-            if event.type == pygame.QUIT:
-                running = False
-
         self.screen.fill((0, 120, 0))
 
         self.drawField(boundaries)
@@ -24,12 +43,12 @@ class GUI:
         # Flip the display
         pygame.display.flip()
 
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                running = False
+
     def drawText(self, upper_text):
-        text = self.font.render(
-            upper_text,
-            True,
-            (255, 255, 255),
-        )
+        text = self.font.render(upper_text, True, (255, 255, 255), (10, 10, 10))
         textRect = text.get_rect()
         textRect.topleft = (30, 10)
         self.screen.blit(text, textRect)
@@ -79,7 +98,7 @@ class GUI:
             elif player.team == "blue":
                 color = (0, 0, 255)
 
-            self.drawBall(player.getPosition(), color=color, size=10)
+            self.drawBall(player.getPosition(), color=color, size=5)
             self.drawBall(
                 np.array(player.getPosition())
                 + np.array(
@@ -89,7 +108,7 @@ class GUI:
                     )
                 ),
                 color=(0, 255, 0),
-                size=3,
+                size=2,
             )
             self.drawBall(
                 np.array(player.getPosition())
@@ -100,7 +119,7 @@ class GUI:
                     )
                 ),
                 color=(0, 255, 0),
-                size=3,
+                size=2,
             )
 
     def mapToGUI(self, pos):
@@ -110,19 +129,19 @@ class GUI:
                 -5,
                 5,
                 0,
-                500,
+                self.window_size[0],
             ),
             self.map_range(
                 pos[1],
-                -3.5,
                 3.5,
+                -3.5,
                 0,
-                350,
+                self.window_size[1],
             ),
         )
 
     def scaleToGUI(self, pos):
-        return self.map_range(pos, 0, 5, 0, 255)
+        return self.map_range(pos, 0, 5, 0, self.window_size[0] / 2)
 
     def map_range(self, x, in_min, in_max, out_min, out_max):
         return (x - in_min) * (out_max - out_min) // (in_max - in_min) + out_min
