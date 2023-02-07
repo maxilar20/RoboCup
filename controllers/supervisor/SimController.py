@@ -2,12 +2,69 @@ from controller import Supervisor
 from Player import *
 import time
 
+import pygame
+
+pygame.init()
+
+PADDING = 40
+SCALE = 0.4
+
 
 class SimController(Supervisor):
     def __init__(self, max_game_time_mins=15):
         super().__init__()
+
+        self.screen = pygame.display.set_mode([500, 500])
+        self.font = pygame.font.Font("freesansbold.ttf", 32)
+
+        self.top_left_GUI = (PADDING, PADDING)
+        self.bottom_right_GUI = ((PADDING + 900) * SCALE, (PADDING + 600) * SCALE)
+
         self.start_game_time_seconds = 0
         self.max_game_time_secs = max_game_time_mins * 60
+
+    def runGUI(self):
+        # Did the user click the window close button?
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                running = False
+
+        # Fill the background with white
+        self.screen.fill((255, 255, 255))
+
+        pygame.draw.rect(
+            self.screen,
+            (0, 255, 0),
+            pygame.Rect(
+                self.top_left_GUI[0],
+                self.top_left_GUI[1],
+                self.bottom_right_GUI[0],
+                self.bottom_right_GUI[1],
+            ),
+        )
+        self.ball_pos = (3, 0)
+        circle_pos = (
+            self.map_range(
+                self.ball_pos[0],
+                -4.5,
+                4.5,
+                self.top_left_GUI[0],
+                self.bottom_right_GUI[0],
+            ),
+            self.map_range(
+                self.ball_pos[1],
+                -3,
+                3,
+                self.top_left_GUI[1],
+                self.bottom_right_GUI[1],
+            ),
+        )
+
+        # Draw a solid blue circle in the center
+        pygame.draw.circle(self.screen, (0, 0, 255), circle_pos, 10)
+
+        # Flip the display
+        pygame.display.flip()
 
     def reset_timer(self):
         print("Starting time")
@@ -83,6 +140,9 @@ class SimController(Supervisor):
 
     def end_simulation(self):
         print("Sim ended")
+
+    def map_range(self, x, in_min, in_max, out_min, out_max):
+        return (x - in_min) * (out_max - out_min) // (in_max - in_min) + out_min
 
 
 player_definitions = [

@@ -1,5 +1,6 @@
 from SimController import *
 
+
 # Initializing controller
 simcontroller = SimController(max_game_time_mins=1)
 
@@ -17,6 +18,8 @@ TIME_STEP = 32
 # Running time step
 i = 0
 while simcontroller.step(TIME_STEP) != -1:
+
+    simcontroller.runGUI()
 
     if simcontroller.time_up():
         break
@@ -42,6 +45,8 @@ while simcontroller.step(TIME_STEP) != -1:
         simcontroller.reset_simulation()
 
     i += 1
+
+pygame.quit()
 
 simcontroller.end_simulation()
 
