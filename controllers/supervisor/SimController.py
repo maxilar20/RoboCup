@@ -6,19 +6,19 @@ import pygame
 
 pygame.init()
 
-PADDING = 40
-SCALE = 0.4
+PADDING = 0
+SCALE = 1
 
 
 class SimController(Supervisor):
     def __init__(self, max_game_time_mins=15):
         super().__init__()
 
-        self.screen = pygame.display.set_mode([500, 500])
+        self.screen = pygame.display.set_mode([500, 350])
         self.font = pygame.font.Font("freesansbold.ttf", 32)
 
-        self.top_left_GUI = (PADDING, PADDING)
-        self.bottom_right_GUI = ((PADDING + 900) * SCALE, (PADDING + 600) * SCALE)
+        self.top_left_GUI = (0, 0)
+        self.bottom_right_GUI = (500, 350)
 
         self.start_game_time_seconds = 0
         self.max_game_time_secs = max_game_time_mins * 60
@@ -48,26 +48,28 @@ class SimController(Supervisor):
         circle_pos = (
             self.map_range(
                 self.ball_pos[0],
-                -4.5,
-                4.5,
+                -5,
+                5,
                 self.top_left_GUI[0],
                 self.bottom_right_GUI[0],
-            ),
+            )
+            + PADDING,
             self.map_range(
                 self.ball_pos[1],
-                -3,
-                3,
+                -3.5,
+                3.5,
                 self.top_left_GUI[1],
                 self.bottom_right_GUI[1],
-            ),
+            )
+            + PADDING,
         )
         pygame.draw.circle(self.screen, (0, 0, 255), circle_pos, 10)
 
         # create a text surface object,
         # on which text is drawn on it.
-        text = self.font.render("GeeksForGeeks", True, (0, 255, 0), (0, 0, 255))
+        text = self.font.render(self.time_passed_text, True, (0, 255, 0), (0, 0, 255))
         textRect = text.get_rect()
-        textRect.center = ((PADDING) // 2, (PADDING + 50) // 2)
+        textRect.topleft = (10, 10)
         self.screen.blit(text, textRect)
 
         # Flip the display
@@ -132,9 +134,8 @@ class SimController(Supervisor):
         return abs(self.ball_pos[1]) > 3 or abs(self.ball_pos[0]) > 4.5
 
     def get_time(self):
-        self.time_passed = time.time()- self.start_game_time_seconds
-        self.time_passed_text = time.strftime('%M:%S',time.gmtime(self.time_passed))
-
+        self.time_passed = time.time() - self.start_game_time_seconds
+        self.time_passed_text = time.strftime("%M:%S", time.gmtime(self.time_passed))
 
     def time_up(self):
         time_passed = time.time() - self.start_game_time_seconds
