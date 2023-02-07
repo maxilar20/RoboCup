@@ -1,13 +1,27 @@
 from controller import Supervisor
 from Player import *
+from GUI import *
 import time
 
 
 class SimController(Supervisor):
     def __init__(self, max_game_time_mins=15):
         super().__init__()
+
+        self.GUI = GUI()
+
         self.start_game_time_seconds = 0
         self.max_game_time_secs = max_game_time_mins * 60
+
+        self.red_score = 0
+        self.blue_score = 0
+
+    def run(self):
+        self.GUI.runGUI(
+            self.ball_pos,
+            f"{self.time_passed_text}    Red {self.red_score} | {self.blue_score} Blue",
+            self.players,
+        )
 
     def reset_timer(self):
         print("Starting time")
@@ -52,37 +66,62 @@ class SimController(Supervisor):
         children_field.importMFNodeFromString(
             -1, "DEF BALL RobocupSoccerBall { translation 0 0 1 }"
         )
-        ball_node = self.getFromDef("BALL")
+        self.ball_node = self.getFromDef("BALL")
 
-    def goal_check(self):
-
-        ball_node = self.getFromDef("BALL")
-        ball_position = ball_node.getField("translation")
-        ball_x = ball_position.getSFVec3f()[0]
-        ball_y = ball_position.getSFVec3f()[1]
-
-        if ball_x < -4.55 and ball_y < 0.7:
+    def inside_goal(self):
+        if self.ball_pos[0] < -4.55 and self.ball_pos[1] < 0.7:
             return "blue"
-        elif ball_x > 4.55 and ball_y < 0.7:
+        elif self.ball_pos[0] > 4.55 and self.ball_pos[1] < 0.7:
             return "red"
 
+    def get_ball_pos(self):
+        ball_position = self.ball_node.getField("translation")
+        self.ball_pos = (ball_position.getSFVec3f()[0], ball_position.getSFVec3f()[1])
+
     def ball_out(self):
-        ball_node = self.getFromDef("BALL")
-        ball_position = ball_node.getField("translation")
-        ball_x = ball_position.getSFVec3f()[0]
-        ball_y = ball_position.getSFVec3f()[1]
-        return abs(ball_y) > 3 or abs(ball_x) > 4.5
+        return abs(self.ball_pos[1]) > 3 or abs(self.ball_pos[0]) > 4.5
+
+    def get_time(self):
+        self.time_passed = time.time() - self.start_game_time_seconds
+        self.time_passed_text = time.strftime("%M:%S", time.gmtime(self.time_passed))
 
     def time_up(self):
         time_passed = time.time() - self.start_game_time_seconds
-
-        # print(f"Game Time: {time.strftime('%M:%S',time.gmtime(time_passed))}")
-        # print(f"Checking if time up")
-
         return time_passed > self.max_game_time_secs
 
     def end_simulation(self):
         print("Sim ended")
+
+    def mapToGUI(self, pos):
+        return (
+            self.map_range(
+                pos[0],
+                -5,
+                5,
+                0,
+                500,
+            ),
+            self.map_range(
+                pos[1],
+                -3.5,
+                3.5,
+                0,
+                350,
+            ),
+        )
+
+    def map_range(self, x, in_min, in_max, out_min, out_max):
+        return (x - in_min) * (out_max - out_min) // (in_max - in_min) + out_min
+
+    def check_goal(self):
+        if self.inside_goal() == "blue":
+            self.blue_score += 1
+            return True
+        elif self.inside_goal() == "red":
+            self.red_score += 1
+            return True
+        else:
+            return False
 
 
 player_definitions = [
