@@ -18,6 +18,8 @@ TIME_STEP = 32
 i = 0
 while simcontroller.step(TIME_STEP) != -1:
 
+    simcontroller.get_ball_pos()
+    
     if simcontroller.time_up():
         break
 

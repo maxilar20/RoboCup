@@ -55,23 +55,29 @@ class SimController(Supervisor):
         ball_node = self.getFromDef("BALL")
 
     def goal_check(self):
+        # ball_x, ball_y = self.get_ball_pos()
+        # ball_node = self.getFromDef("BALL")
+        # ball_position = ball_node.getField("translation")
+        # ball_x = ball_position.getSFVec3f()[0]
+        # ball_y = ball_position.getSFVec3f()[1]
 
-        ball_node = self.getFromDef("BALL")
-        ball_position = ball_node.getField("translation")
-        ball_x = ball_position.getSFVec3f()[0]
-        ball_y = ball_position.getSFVec3f()[1]
-
-        if ball_x < -4.55 and ball_y < 0.7:
+        if self.ball_pos[0] < -4.55 and self.ball_pos[1] < 0.7:
             return "blue"
-        elif ball_x > 4.55 and ball_y < 0.7:
+        elif self.ball_pos[0] > 4.55 and self.ball_pos[1] < 0.7:
             return "red"
 
-    def ball_out(self):
+    def get_ball_pos(self):
         ball_node = self.getFromDef("BALL")
         ball_position = ball_node.getField("translation")
-        ball_x = ball_position.getSFVec3f()[0]
-        ball_y = ball_position.getSFVec3f()[1]
-        return abs(ball_y) > 3 or abs(ball_x) > 4.5
+        self.ball_pos = (ball_position.getSFVec3f()[0], ball_position.getSFVec3f()[1])
+
+    def ball_out(self):
+        # ball_x, ball_y = self.get_ball_pos()
+        # ball_node = self.getFromDef("BALL")
+        # ball_position = ball_node.getField("translation")
+        # ball_x = ball_position.getSFVec3f()[0]
+        # ball_y = ball_position.getSFVec3f()[1]
+        return abs(self.ball_pos[1]) > 3 or abs(self.ball_pos[0]) > 4.5
 
     def time_up(self):
         time_passed = time.time() - self.start_game_time_seconds
