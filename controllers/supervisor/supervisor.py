@@ -5,7 +5,6 @@ simcontroller = SimController(max_game_time_mins=1)
 
 # Resetting values
 simcontroller.reset_timer()
-#simcontroller.reset_simulation() #Cannot reset using 'reset_simulation()' in the start because the objects are not present on the field
 
 # Spawning entities
 simcontroller.spawn_players()
@@ -22,24 +21,24 @@ while simcontroller.step(TIME_STEP) != -1:
     if simcontroller.time_up():
         break
 
-    if simcontroller.goal_check() == "blue": 
+    if simcontroller.goal_check() == "blue":
         print("Goal scored, Scores as follows: ")
-        blue_score+=1
+        blue_score += 1
         print("Red team score: ", red_score)
         print("Blue team score: ", blue_score)
-        print("Resetting simulation in 5...")
+        # print("Resetting simulation in 5...")
         simcontroller.reset_simulation()
 
     elif simcontroller.goal_check() == "red":
         print("Goal scored, Scores as follows: ")
-        red_score+=1
+        red_score += 1
         print("Red team score: ", red_score)
         print("Blue team score: ", blue_score)
-        print("Resetting simulation in 5...")
+        # print("Resetting simulation in 5s...")
         simcontroller.reset_simulation()
 
     elif simcontroller.ball_out():
-        print("Ball out of field, resetting simulation in 5...")
+        print("Ball out of field")
         simcontroller.reset_simulation()
 
     i += 1

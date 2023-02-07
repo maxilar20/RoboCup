@@ -14,7 +14,6 @@ class SimController(Supervisor):
         self.start_game_time_seconds = time.time()
 
     def reset_simulation(self):
-        time.sleep(5)
         ball = self.getFromDef("BALL")
         ball_position = ball.getField("translation")
         ball_position.setSFVec3f([0, 0, 1])
@@ -56,7 +55,6 @@ class SimController(Supervisor):
         ball_node = self.getFromDef("BALL")
 
     def goal_check(self):
-        # print("Checking goal")
 
         ball_node = self.getFromDef("BALL")
         ball_position = ball_node.getField("translation")
@@ -64,10 +62,8 @@ class SimController(Supervisor):
         ball_y = ball_position.getSFVec3f()[1]
 
         if ball_x < -4.55 and ball_y < 0.7:
-            # print("Score for blue team")
             return "blue"
         elif ball_x > 4.55 and ball_y < 0.7:
-            # print("Score for red team")
             return "red"
 
     def ball_out(self):
@@ -75,8 +71,7 @@ class SimController(Supervisor):
         ball_position = ball_node.getField("translation")
         ball_x = ball_position.getSFVec3f()[0]
         ball_y = ball_position.getSFVec3f()[1]
-        if abs(ball_y) > 3 or abs(ball_x) > 4.5:
-            print("Ball Out")
+        return abs(ball_y) > 3 or abs(ball_x) > 4.5
 
     def time_up(self):
         time_passed = time.time() - self.start_game_time_seconds
