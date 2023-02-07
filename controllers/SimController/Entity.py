@@ -20,7 +20,10 @@ class Entity:
         )
 
     def getOrientation(self):
-        return self.orientation_field.getSFVec3f()[3]
+        return (
+            self.orientation_field.getSFVec3f()[3]
+            * self.orientation_field.getSFVec3f()[2]
+        )
 
     def reset(self):
         self.position_field.setSFVec3f([float(i) for i in self.translation.split()])
