@@ -1,0 +1,35 @@
+#VRML_SIM R2023a utf8
+
+EXTERNPROTO "https://raw.githubusercontent.com/cyberbotics/webots/R2023a/projects/objects/backgrounds/protos/TexturedBackground.proto"
+EXTERNPROTO "https://raw.githubusercontent.com/cyberbotics/webots/R2023a/projects/objects/backgrounds/protos/TexturedBackgroundLight.proto"
+IMPORTABLE EXTERNPROTO "../protos/Nao.proto"
+EXTERNPROTO "https://raw.githubusercontent.com/cyberbotics/webots/R2023a/projects/objects/robotstadium/protos/RobotstadiumSoccerField.proto"
+IMPORTABLE EXTERNPROTO "https://raw.githubusercontent.com/cyberbotics/webots/R2023a/projects/objects/balls/protos/RobocupSoccerBall.proto"
+IMPORTABLE EXTERNPROTO "https://raw.githubusercontent.com/cyberbotics/webots/R2023a/projects/objects/robotstadium/protos/RobotstadiumGoal.proto"
+
+WorldInfo {
+}
+Viewpoint {
+  orientation -0.13436012251641624 0.05846071606033921 0.989206602361249 2.328707286334748
+  position 2.2860592326444937 -2.2568673215976753 1.0442014001689082
+}
+TexturedBackground {
+}
+TexturedBackgroundLight {
+}
+RobotstadiumSoccerField {
+}
+DEF GOAL_BLUE RobotstadiumGoal {
+  translation 4.55 0 0
+}
+DEF GOAL_RED RobotstadiumGoal {
+  translation -4.55 0 0
+  rotation 0 0 1 3.14159
+  name "robotstadium goal(1)"
+}
+Nao {
+  controller "nao_python_walking"
+}
+RobocupSoccerBall {
+  translation 0.73 0 0.13
+}
