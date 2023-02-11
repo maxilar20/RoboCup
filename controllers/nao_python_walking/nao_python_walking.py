@@ -169,31 +169,63 @@ class Nao(Robot):
             b = math.pi - c
             hip = -math.asin(pos[2] / L)
 
+            print(H)
             self.legJoints[prefix + "HipPitch"]["joint"].setPosition(-H)
             self.legJoints[prefix + "KneePitch"]["joint"].setPosition(b)
             self.legJoints[prefix + "AnklePitch"]["joint"].setPosition(H - b)
             self.legJoints[prefix + "HipRoll"]["joint"].setPosition(hip)
             self.legJoints[prefix + "AnkleRoll"]["joint"].setPosition(-hip)
+            self.legJoints[prefix + "HipYawPitch"]["joint"].setPosition(pos[3])
 
     def walk(self):
         stride = self.stride
 
         motion = [
-            ((0.16, stride[1], constrain(stride[0], -0.05, 0)), (0.18, 0, -0.05)),
-            ((0.18, stride[1], constrain(stride[0], -0.05, 0)), (0.18, 0, -0.05)),
-            ((0.18, 0, 0.05), (0.18, -stride[1], -constrain(stride[0], -0.05, 0))),
-            ((0.18, 0, 0.05), (0.16, -stride[1], -constrain(stride[0], -0.05, 0))),
-            ((0.18, 0, 0.05), (0.16, 0, 0)),
-            ((0.18, 0, 0.05), (0.16, stride[1], constrain(stride[0], 0, 0.05))),
-            ((0.18, 0, 0.05), (0.18, stride[1], constrain(stride[0], 0, 0.05))),
-            ((0.18, -stride[1], -constrain(stride[0], 0, 0.05)), (0.18, 0, -0.05)),
-            ((0.16, -stride[1], -constrain(stride[0], 0, 0.05)), (0.18, 0, -0.05)),
-            ((0.16, 0, 0), (0.18, 0, -0.05)),
+            (
+                (0.14, stride[1], constrain(stride[0], -0.05, 0), -stride[3]),
+                (0.16, 0, -0.05, stride[3]),
+            ),
+            (
+                (0.16, stride[1], constrain(stride[0], -0.05, 0), -stride[3]),
+                (0.16, 0, -0.05, 0),
+            ),
+            (
+                (0.16, 0, 0.05, -stride[3]),
+                (0.16, -stride[1], -constrain(stride[0], -0.05, 0), 0),
+            ),
+            (
+                (0.16, 0, 0.05, -stride[3]),
+                (0.14, -stride[1], -constrain(stride[0], -0.05, 0), stride[3]),
+            ),
+            (
+                (0.16, 0, 0.05, 0),
+                (0.14, 0, 0, stride[3]),
+            ),
+            (
+                (0.16, 0, 0.05, 0),
+                (0.14, stride[1], constrain(stride[0], 0, 0.05), stride[3]),
+            ),
+            (
+                (0.16, 0, 0.05, 0),
+                (0.16, stride[1], constrain(stride[0], 0, 0.05), stride[3]),
+            ),
+            (
+                (0.16, -stride[1], -constrain(stride[0], 0, 0.05), 0),
+                (0.16, 0, -0.05, stride[3]),
+            ),
+            (
+                (0.14, -stride[1], -constrain(stride[0], 0, 0.05), -stride[3]),
+                (0.16, 0, -0.05, 0),
+            ),
+            (
+                (0.14, 0, 0, -stride[3]),
+                (0.16, 0, -0.05, 0),
+            ),
         ]
 
         if self.t > self.end_t:
             self.start_t = self.t
-            self.end_t = self.start_t + 0.075
+            self.end_t = self.start_t + 0.1
             self.idx += 1
 
         if self.idx > len(motion) - 1:
@@ -201,7 +233,7 @@ class Nao(Robot):
 
         if self.idx in [0, 4]:
             self.stride = self.new_stride
-            self.new_stride = [0, 0, 0]
+            self.new_stride = [0, 0, 0, 0]
 
         if self.start_t < self.t < self.end_t:
 
@@ -239,8 +271,8 @@ class Nao(Robot):
         self.t = 0
         self.start_t = self.t
         self.end_t = self.start_t + 1
-        self.stride = [0, 0, 0]
-        self.new_stride = [0, 0, 0]
+        self.stride = [0, 0, 0, 0]
+        self.new_stride = [0, 0, 0, 0]
 
         # until a key is pressed
         key = -1
@@ -248,22 +280,24 @@ class Nao(Robot):
 
             key = self.keyboard.getKey()
             if key == Keyboard.LEFT:
-                self.new_stride = [-0.035, 0, 0]
+                self.new_stride = [-0.04, 0, 0, 0]
                 # self.startMotion(self.sideStepLeft)
             if key == Keyboard.RIGHT:
-                self.new_stride = [0.035, 0, 0]
+                self.new_stride = [0.04, 0, 0, 0]
                 # self.startMotion(self.sideStepRight)
             if key == Keyboard.UP:
-                self.new_stride = [0, 0.05, 0]
+                self.new_stride = [0, 0.075, 0, 0]
                 # self.startMotion(self.forwards)
             if key == Keyboard.DOWN:
-                self.new_stride = [0, -0.05, 0]
+                self.new_stride = [0, -0.075, 0, 0]
                 # self.startMotion(self.backwards)
 
             if key == Keyboard.LEFT | Keyboard.SHIFT:
-                self.startMotion(self.turnLeft)
+                self.new_stride[3] = -0.5
+                # self.startMotion(self.turnLeft)
             elif key == Keyboard.RIGHT | Keyboard.SHIFT:
-                self.startMotion(self.turnRight)
+                self.new_stride[3] = 0.5
+                # self.startMotion(self.turnRight)
             elif key == ord(" "):
                 self.startMotion(self.shoot)
 
