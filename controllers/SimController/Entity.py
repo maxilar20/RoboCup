@@ -46,14 +46,9 @@ class Player(Entity):
             color = BLUE_COLOR
             self.rotation = "0 0 1 3.1415"
 
-        custom_args = f"customColor {color}"
+        custom_args = f"customColor {color} channel {channel}"
         super().__init__(
-            robot,
-            self.name,
-            "Nao",
-            translation,
-            self.rotation,
-            custom_args=f"channel {channel}",
+            robot, self.name, "Nao", translation, self.rotation, custom_args
         )
 
 
