@@ -1,4 +1,4 @@
-from controller import Supervisor
+from controller import Supervisor, Keyboard
 from Entity import *
 from GUI import *
 import time
@@ -21,6 +21,12 @@ class SimController(Supervisor):
 
         self.GUI = GUI()
 
+        self.keyboard = self.getKeyboard()
+        self.timeStep = int(self.getBasicTimeStep())
+        self.keyboard.enable(10 * self.timeStep)
+        self.emitter = self.getDevice("emitter")
+        # self.emitter.setBufferSize(10000)
+
     def run(self):
         simcontroller.get_time()
 
@@ -28,6 +34,33 @@ class SimController(Supervisor):
         self.GUI.runGUI(
             self.ball, self.players, self.time_passed_text + score_text, self.boundaries
         )
+
+        message = [0.0, 0.0, 0.0]
+
+        key = self.keyboard.getKey()
+        if key == Keyboard.LEFT:
+            message = [-1.0, 0.0, 0.0]
+            # self.startMotion(self.sideStepLeft)
+        if key == Keyboard.RIGHT:
+            message = [1.0, 0.0, 0.0]
+            # self.startMotion(self.sideStepRight)
+        if key == Keyboard.UP:
+            message = [0.0, 1.0, 0.0]
+            # self.startMotion(self.forwards)
+        if key == Keyboard.DOWN:
+            message = [0.0, -1.0, 0.0]
+            # self.startMotion(self.backwards)
+
+        if key == Keyboard.LEFT | Keyboard.SHIFT:
+            message[2] = -1.0
+            # self.startMotion(self.turnLeft)
+        elif key == Keyboard.RIGHT | Keyboard.SHIFT:
+            message[2] = 1.0
+            # self.startMotion(self.turnRight)
+        elif key == ord(" "):
+            self.startMotion(self.shoot)
+
+        self.emitter.send(message)
 
         if simcontroller.time_up():
             simcontroller.end_simulation()
@@ -38,7 +71,7 @@ class SimController(Supervisor):
         if simcontroller.ball_out():
             simcontroller.reset_simulation()
 
-        # TODO: Check if there's been a fault
+        # TODO: Check if there's been message fault
 
     def reset_simulation(self):
         self.ball.reset()
@@ -83,49 +116,49 @@ player_definitions = [
         "player": "1",
         "team": "red",
         "player_position": "goalie",
-        "translation": "-4 0 0.4",
+        "translation": "-4 0 0.3",
     },
     {
         "player": "2",
         "team": "red",
         "player_position": "defender",
-        "translation": "-2.5 0 0.4",
+        "translation": "-2.5 0 0.3",
     },
     {
         "player": "3",
         "team": "red",
         "player_position": "attacker_left",
-        "translation": "-1 0.5 0.4",
+        "translation": "-1 0.5 0.3",
     },
     {
         "player": "4",
         "team": "red",
         "player_position": "attacker_right",
-        "translation": "-1 -0.5 0.4",
+        "translation": "-1 -0.5 0.3",
     },
     {
         "player": "1",
         "team": "blue",
         "player_position": "goalie",
-        "translation": "4 0 0.4",
+        "translation": "4 0 0.3",
     },
     {
         "player": "2",
         "team": "blue",
         "player_position": "defender",
-        "translation": "2.5 0 0.4",
+        "translation": "2.5 0 0.3",
     },
     {
         "player": "3",
         "team": "blue",
         "player_position": "attacker_left",
-        "translation": "1 -0.5 0.4",
+        "translation": "1 -0.5 0.3",
     },
     {
         "player": "4",
         "team": "blue",
         "player_position": "attacker_right",
-        "translation": "1 0.5 0.4",
+        "translation": "1 0.5 0.3",
     },
 ]
 

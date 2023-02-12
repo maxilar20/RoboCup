@@ -14,6 +14,10 @@ Viewpoint {
   position -0.12889253032388936 -12.402975181936128 3.4959616225066847
 }
 Robot {
+  children [
+    Emitter {
+    }
+  ]
   name "supervisor"
   controller "SimController"
   supervisor TRUE

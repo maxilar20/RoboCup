@@ -45,6 +45,7 @@ class Nao(Robot):
                 self.lphalanx[i].setPosition(clampedAngle)
 
     def findAndEnableDevices(self):
+
         # get the time step of the current world.
         self.timeStep = int(self.getBasicTimeStep())
 
@@ -150,12 +151,13 @@ class Nao(Robot):
                 "joint_max": joint.getMaxPosition(),
                 "joint_min": joint.getMinPosition(),
             }
-        for i in self.legJoints:
-            print(i, self.legJoints[i])
 
         # keyboard
         self.keyboard = self.getKeyboard()
         self.keyboard.enable(10 * self.timeStep)
+
+        self.receiver = self.getDevice("receiver")
+        self.receiver.enable(self.timeStep)
 
     def moveLegs(self, left, right):
         prefixes = ["L", "R"]
@@ -169,7 +171,6 @@ class Nao(Robot):
             b = math.pi - c
             hip = -math.asin(pos[2] / L)
 
-            print(H)
             self.legJoints[prefix + "HipPitch"]["joint"].setPosition(-H)
             self.legJoints[prefix + "KneePitch"]["joint"].setPosition(b)
             self.legJoints[prefix + "AnklePitch"]["joint"].setPosition(H - b)
@@ -182,43 +183,43 @@ class Nao(Robot):
 
         motion = [
             (
-                (0.14, stride[1], constrain(stride[0], -0.05, 0), -stride[3]),
-                (0.16, 0, -0.05, stride[3]),
+                (0.14, stride[1], constrain(stride[0], -0.05, 0), -stride[2]),
+                (0.16, 0, -0.05, stride[2]),
             ),
             (
-                (0.16, stride[1], constrain(stride[0], -0.05, 0), -stride[3]),
+                (0.16, stride[1], constrain(stride[0], -0.05, 0), -stride[2]),
                 (0.16, 0, -0.05, 0),
             ),
             (
-                (0.16, 0, 0.05, -stride[3]),
+                (0.16, 0, 0.05, -stride[2]),
                 (0.16, -stride[1], -constrain(stride[0], -0.05, 0), 0),
             ),
             (
-                (0.16, 0, 0.05, -stride[3]),
-                (0.14, -stride[1], -constrain(stride[0], -0.05, 0), stride[3]),
+                (0.16, 0, 0.05, -stride[2]),
+                (0.14, -stride[1], -constrain(stride[0], -0.05, 0), stride[2]),
             ),
             (
                 (0.16, 0, 0.05, 0),
-                (0.14, 0, 0, stride[3]),
+                (0.14, 0, 0, stride[2]),
             ),
             (
                 (0.16, 0, 0.05, 0),
-                (0.14, stride[1], constrain(stride[0], 0, 0.05), stride[3]),
+                (0.14, stride[1], constrain(stride[0], 0, 0.05), stride[2]),
             ),
             (
                 (0.16, 0, 0.05, 0),
-                (0.16, stride[1], constrain(stride[0], 0, 0.05), stride[3]),
+                (0.16, stride[1], constrain(stride[0], 0, 0.05), stride[2]),
             ),
             (
                 (0.16, -stride[1], -constrain(stride[0], 0, 0.05), 0),
-                (0.16, 0, -0.05, stride[3]),
+                (0.16, 0, -0.05, stride[2]),
             ),
             (
-                (0.14, -stride[1], -constrain(stride[0], 0, 0.05), -stride[3]),
+                (0.14, -stride[1], -constrain(stride[0], 0, 0.05), -stride[2]),
                 (0.16, 0, -0.05, 0),
             ),
             (
-                (0.14, 0, 0, -stride[3]),
+                (0.14, 0, 0, -stride[2]),
                 (0.16, 0, -0.05, 0),
             ),
         ]
@@ -231,7 +232,7 @@ class Nao(Robot):
         if self.idx > len(motion) - 1:
             self.idx = 0
 
-        if self.idx in [0, 4]:
+        if self.idx in [1, 5]:
             self.stride = self.new_stride
             self.new_stride = [0, 0, 0, 0]
 
@@ -278,30 +279,11 @@ class Nao(Robot):
         key = -1
         while robot.step(self.timeStep) != -1:
 
-            key = self.keyboard.getKey()
-            if key == Keyboard.LEFT:
-                self.new_stride = [-0.04, 0, 0, 0]
-                # self.startMotion(self.sideStepLeft)
-            if key == Keyboard.RIGHT:
-                self.new_stride = [0.04, 0, 0, 0]
-                # self.startMotion(self.sideStepRight)
-            if key == Keyboard.UP:
-                self.new_stride = [0, 0.075, 0, 0]
-                # self.startMotion(self.forwards)
-            if key == Keyboard.DOWN:
-                self.new_stride = [0, -0.075, 0, 0]
-                # self.startMotion(self.backwards)
+            if self.receiver.getQueueLength() > 0:
+                a = self.receiver.getFloats()
+                self.receiver.nextPacket()
+                self.new_stride = [0.04 * a[0], 0.075 * a[1], 0.5 * a[2]]
 
-            if key == Keyboard.LEFT | Keyboard.SHIFT:
-                self.new_stride[3] = -0.5
-                # self.startMotion(self.turnLeft)
-            elif key == Keyboard.RIGHT | Keyboard.SHIFT:
-                self.new_stride[3] = 0.5
-                # self.startMotion(self.turnRight)
-            elif key == ord(" "):
-                self.startMotion(self.shoot)
-
-            # print("\x1b[2J")
             self.walk()
 
             self.t += self.timeStep / 1000
