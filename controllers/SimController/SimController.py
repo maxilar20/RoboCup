@@ -24,8 +24,8 @@ class SimController(Supervisor):
         self.keyboard = self.getKeyboard()
         self.timeStep = int(self.getBasicTimeStep())
         self.keyboard.enable(10 * self.timeStep)
+
         self.emitter = self.getDevice("emitter")
-        # self.emitter.setBufferSize(10000)
 
     def run(self):
         simcontroller.get_time()
@@ -37,28 +37,19 @@ class SimController(Supervisor):
 
         message = [0.0, 0.0, 0.0]
 
-        key = self.keyboard.getKey()
-        if key == Keyboard.LEFT:
-            message = [-1.0, 0.0, 0.0]
-            # self.startMotion(self.sideStepLeft)
-        if key == Keyboard.RIGHT:
-            message = [1.0, 0.0, 0.0]
-            # self.startMotion(self.sideStepRight)
-        if key == Keyboard.UP:
-            message = [0.0, 1.0, 0.0]
-            # self.startMotion(self.forwards)
-        if key == Keyboard.DOWN:
-            message = [0.0, -1.0, 0.0]
-            # self.startMotion(self.backwards)
+        keys = pygame.key.get_pressed()
 
-        if key == Keyboard.LEFT | Keyboard.SHIFT:
-            message[2] = -1.0
-            # self.startMotion(self.turnLeft)
-        elif key == Keyboard.RIGHT | Keyboard.SHIFT:
-            message[2] = 1.0
-            # self.startMotion(self.turnRight)
-        elif key == ord(" "):
-            self.startMotion(self.shoot)
+        if keys[pygame.K_LEFT]:
+            message[0] += -1.0
+
+        if keys[pygame.K_RIGHT]:
+            message[0] += 1.0
+
+        if keys[pygame.K_UP]:
+            message[1] += 1.0
+
+        if keys[pygame.K_DOWN]:
+            message[1] += -1.0
 
         self.emitter.send(message)
 
@@ -117,48 +108,56 @@ player_definitions = [
         "team": "red",
         "player_position": "goalie",
         "translation": "-4 0 0.3",
+        "channel": 0,
     },
     {
         "player": "2",
         "team": "red",
         "player_position": "defender",
         "translation": "-2.5 0 0.3",
+        "channel": 1,
     },
     {
         "player": "3",
         "team": "red",
         "player_position": "attacker_left",
         "translation": "-1 0.5 0.3",
+        "channel": 2,
     },
     {
         "player": "4",
         "team": "red",
         "player_position": "attacker_right",
         "translation": "-1 -0.5 0.3",
+        "channel": 3,
     },
     {
         "player": "1",
         "team": "blue",
         "player_position": "goalie",
         "translation": "4 0 0.3",
+        "channel": 4,
     },
     {
         "player": "2",
         "team": "blue",
         "player_position": "defender",
         "translation": "2.5 0 0.3",
+        "channel": 5,
     },
     {
         "player": "3",
         "team": "blue",
         "player_position": "attacker_left",
         "translation": "1 -0.5 0.3",
+        "channel": 6,
     },
     {
         "player": "4",
         "team": "blue",
         "player_position": "attacker_right",
         "translation": "1 0.5 0.3",
+        "channel": 7,
     },
 ]
 

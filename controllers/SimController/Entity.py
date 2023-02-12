@@ -30,7 +30,7 @@ class Entity:
 
 
 class Player(Entity):
-    def __init__(self, robot, player, team, player_position, translation):
+    def __init__(self, robot, player, team, player_position, translation, channel):
 
         self.name = f"{team}_{player}"
         self.team = team
@@ -48,7 +48,12 @@ class Player(Entity):
 
         custom_args = f"customColor {color}"
         super().__init__(
-            robot, self.name, "Nao", translation, self.rotation, custom_args
+            robot,
+            self.name,
+            "Nao",
+            translation,
+            self.rotation,
+            custom_args=f"channel {channel}",
         )
 
 

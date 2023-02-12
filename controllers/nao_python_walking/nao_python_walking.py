@@ -152,10 +152,11 @@ class Nao(Robot):
                 "joint_min": joint.getMinPosition(),
             }
 
-        # keyboard
+        # Keyboard
         self.keyboard = self.getKeyboard()
         self.keyboard.enable(10 * self.timeStep)
 
+        # Receiver
         self.receiver = self.getDevice("receiver")
         self.receiver.enable(self.timeStep)
 
@@ -226,7 +227,7 @@ class Nao(Robot):
 
         if self.t > self.end_t:
             self.start_t = self.t
-            self.end_t = self.start_t + 0.1
+            self.end_t = self.start_t + 0.12
             self.idx += 1
 
         if self.idx > len(motion) - 1:
