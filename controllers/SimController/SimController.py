@@ -2,6 +2,7 @@ from controller import Supervisor
 from Entity import *
 from GUI import *
 import time
+from pygame import math
 
 
 class SimController(Supervisor):
@@ -101,10 +102,10 @@ class SimController(Supervisor):
 
 def isInside(pos, boundary):
     return (
-        pos[0] > boundary[0]
-        and pos[0] < boundary[2]
-        and pos[1] < boundary[1]
-        and pos[1] > boundary[3]
+        pos.x > boundary[0].x
+        and pos.x < boundary[1].x
+        and pos.y < boundary[0].y
+        and pos.y > boundary[1].y
     )
 
 
@@ -168,11 +169,11 @@ player_definitions = [
 ]
 
 boundaries = {
-    "goal_red": (-5, 0.7, -4.5, -0.7),
-    "goal_blue": (4.5, 0.7, 5, -0.7),
-    "field": (-4.5, 3, 4.5, -3),
-    "penalty_red": (-4.5, 1, -4, -1),
-    "penalty_blue": (4, 1, 4.5, -1),
+    "goal_red": (math.Vector2(-5, 0.7), math.Vector2(-4.5, -0.7)),
+    "goal_blue": (math.Vector2(4.5, 0.7), math.Vector2(5, -0.7)),
+    "field": (math.Vector2(-4.5, 3), math.Vector2(4.5, -3)),
+    "penalty_red": (math.Vector2(-4.5, 1), math.Vector2(-4, -1)),
+    "penalty_blue": (math.Vector2(4, 1), math.Vector2(4.5, -1)),
 }
 
 if __name__ == "__main__":

@@ -1,3 +1,6 @@
+from pygame import math
+
+
 class Entity:
     def __init__(
         self, robot, name, DEF, translation, rotation, custom_args="", circle_radius=0.1
@@ -18,10 +21,7 @@ class Entity:
         self.orientation_field = self.node.getField("rotation")
 
     def getPosition(self):
-        return (
-            self.position_field.getSFVec3f()[0],
-            self.position_field.getSFVec3f()[1],
-        )
+        return math.Vector2(self.position_field.getSFVec3f()[:2])
 
     def getOrientation(self):
         return (

@@ -1,15 +1,16 @@
 import pygame
+from pygame import math
 import numpy as np
 import ctypes
 from ctypes import wintypes
 
 
 class GUI:
-    def __init__(self, window_size=(334, 230)):
+    def __init__(self, window_size=math.Vector2((334, 230))):
+
         pygame.init()
 
         self.window_size = window_size
-
         self.screen = pygame.display.set_mode(self.window_size)
         pygame.display.set_caption("Robocup")
         icon = pygame.image.load("icon.png")
@@ -60,9 +61,8 @@ class GUI:
                 self.screen,
                 (255, 255, 255),
                 pygame.Rect(
-                    self.mapToGUI((boundary[0], boundary[1])),
-                    np.array(self.mapToGUI((boundary[2], boundary[3])))
-                    - np.array(self.mapToGUI((boundary[0], boundary[1]))),
+                    self.mapToGUI(boundary[0]),
+                    self.mapToGUI(boundary[1]) - self.mapToGUI(boundary[0]),
                 ),
                 2,
             )
@@ -113,7 +113,7 @@ class GUI:
                 self.screen,
                 (0, 255, 0),
                 self.mapToGUI(
-                    np.array(player.getPosition())
+                    player.getPosition()
                     + 0.9
                     * np.array(
                         (
@@ -128,7 +128,7 @@ class GUI:
                 self.screen,
                 (0, 255, 0),
                 self.mapToGUI(
-                    np.array(player.getPosition())
+                    player.getPosition()
                     + 0.9
                     * np.array(
                         (
@@ -141,7 +141,7 @@ class GUI:
             )
 
     def mapToGUI(self, pos):
-        return (
+        return math.Vector2(
             self.map_range(
                 pos[0],
                 -5,
