@@ -1,5 +1,6 @@
 from controller import Robot, Keyboard, Motion
-import os
+import math
+import numpy as np
 
 
 class Nao(Robot):
@@ -44,6 +45,7 @@ class Nao(Robot):
                 self.lphalanx[i].setPosition(clampedAngle)
 
     def findAndEnableDevices(self):
+
         # get the time step of the current world.
         self.timeStep = int(self.getBasicTimeStep())
 
@@ -122,15 +124,140 @@ class Nao(Robot):
         self.RShoulderPitch = self.getDevice("RShoulderPitch")
         self.LShoulderPitch = self.getDevice("LShoulderPitch")
 
-        # keyboard
+        # Legs
+        joint_names = [
+            "HipYawPitch",
+            "HipRoll",
+            "HipPitch",
+            "KneePitch",
+            "AnklePitch",
+            "AnkleRoll",
+        ]
+        self.legJoints = {}
+        for idx in joint_names:
+            L_name = "L" + idx
+            R_name = "R" + idx
+            joint = self.getDevice(L_name)
+            self.legJoints[L_name] = {
+                "joint": joint,
+                "joint_position": joint.getTargetPosition(),
+                "joint_max": joint.getMaxPosition(),
+                "joint_min": joint.getMinPosition(),
+            }
+            joint = self.getDevice(R_name)
+            self.legJoints[R_name] = {
+                "joint": joint,
+                "joint_position": joint.getTargetPosition(),
+                "joint_max": joint.getMaxPosition(),
+                "joint_min": joint.getMinPosition(),
+            }
+
+        # Keyboard
         self.keyboard = self.getKeyboard()
         self.keyboard.enable(10 * self.timeStep)
 
+        # Receiver
+        self.receiver = self.getDevice("receiver")
+        self.receiver.enable(self.timeStep)
+
+    def moveLegs(self, left, right):
+        prefixes = ["L", "R"]
+        for prefix, pos in zip(prefixes, [left, right]):
+            L = math.sqrt(pos[0] ** 2 + pos[1] ** 2 + pos[2] ** 2)
+            a = math.acos(((0.1**2) - (0.1**2) + (L**2)) / (2 * 0.1 * L))
+
+            c = math.acos(((0.1**2) + (0.1**2) - (L**2)) / (2 * 0.1 * 0.1))
+            alpha = math.atan2(pos[1], pos[0])
+            H = a + alpha
+            b = math.pi - c
+            hip = -math.asin(pos[2] / L)
+
+            self.legJoints[prefix + "HipPitch"]["joint"].setPosition(-H)
+            self.legJoints[prefix + "KneePitch"]["joint"].setPosition(b)
+            self.legJoints[prefix + "AnklePitch"]["joint"].setPosition(H - b)
+            self.legJoints[prefix + "HipRoll"]["joint"].setPosition(hip)
+            self.legJoints[prefix + "AnkleRoll"]["joint"].setPosition(-hip)
+            self.legJoints[prefix + "HipYawPitch"]["joint"].setPosition(pos[3])
+
+    def walk(self):
+        stride = self.stride
+
+        motion = [
+            (
+                (0.14, stride[1], constrain(stride[0], -0.05, 0), -stride[2]),
+                (0.16, 0, -0.05, stride[2]),
+            ),
+            (
+                (0.16, stride[1], constrain(stride[0], -0.05, 0), -stride[2]),
+                (0.16, 0, -0.05, 0),
+            ),
+            (
+                (0.16, 0, 0.05, -stride[2]),
+                (0.16, -stride[1], -constrain(stride[0], -0.05, 0), 0),
+            ),
+            (
+                (0.16, 0, 0.05, -stride[2]),
+                (0.14, -stride[1], -constrain(stride[0], -0.05, 0), stride[2]),
+            ),
+            (
+                (0.16, 0, 0.05, 0),
+                (0.14, 0, 0, stride[2]),
+            ),
+            (
+                (0.16, 0, 0.05, 0),
+                (0.14, stride[1], constrain(stride[0], 0, 0.05), stride[2]),
+            ),
+            (
+                (0.16, 0, 0.05, 0),
+                (0.16, stride[1], constrain(stride[0], 0, 0.05), stride[2]),
+            ),
+            (
+                (0.16, -stride[1], -constrain(stride[0], 0, 0.05), 0),
+                (0.16, 0, -0.05, stride[2]),
+            ),
+            (
+                (0.14, -stride[1], -constrain(stride[0], 0, 0.05), -stride[2]),
+                (0.16, 0, -0.05, 0),
+            ),
+            (
+                (0.14, 0, 0, -stride[2]),
+                (0.16, 0, -0.05, 0),
+            ),
+        ]
+
+        if self.t > self.end_t:
+            self.start_t = self.t
+            self.end_t = self.start_t + 0.12
+            self.idx += 1
+
+        if self.idx > len(motion) - 1:
+            self.idx = 0
+
+        if self.idx in [1, 5]:
+            self.stride = self.new_stride
+            self.new_stride = [0, 0, 0, 0]
+
+        if self.start_t < self.t < self.end_t:
+
+            self.moveLegs(
+                map_range(
+                    self.t,
+                    self.start_t,
+                    self.end_t,
+                    np.array(motion[self.idx - 1][0]),
+                    np.array(motion[self.idx][0]),
+                ),
+                map_range(
+                    self.t,
+                    self.start_t,
+                    self.end_t,
+                    np.array(motion[self.idx - 1][1]),
+                    np.array(motion[self.idx][1]),
+                ),
+            )
+
     def __init__(self):
         Robot.__init__(self)
-
-        print(self.name)
-
         self.currentlyPlaying = False
 
         # initialize stuff
@@ -142,34 +269,33 @@ class Nao(Robot):
         self.handWave.play()
         self.currentlyPlaying = self.handWave
 
+        self.idx = 0
+        self.t = 0
+        self.start_t = self.t
+        self.end_t = self.start_t + 1
+        self.stride = [0, 0, 0, 0]
+        self.new_stride = [0, 0, 0, 0]
+
         # until a key is pressed
         key = -1
         while robot.step(self.timeStep) != -1:
-            key = self.keyboard.getKey()
-            if key > 0:
-                break
 
-        while True:
-            key = self.keyboard.getKey()
+            if self.receiver.getQueueLength() > 0:
+                a = self.receiver.getFloats()
+                self.receiver.nextPacket()
+                self.new_stride = [0.04 * a[0], 0.075 * a[1], 0.5 * a[2]]
 
-            if self.name == "NAO(3)":
-                if key == Keyboard.LEFT:
-                    self.startMotion(self.sideStepLeft)
-                elif key == Keyboard.RIGHT:
-                    self.startMotion(self.sideStepRight)
-                elif key == Keyboard.UP:
-                    self.startMotion(self.forwards)
-                elif key == Keyboard.DOWN:
-                    self.startMotion(self.backwards)
-                elif key == Keyboard.LEFT | Keyboard.SHIFT:
-                    self.startMotion(self.turnLeft)
-                elif key == Keyboard.RIGHT | Keyboard.SHIFT:
-                    self.startMotion(self.turnRight)
-                elif key == ord(" "):
-                    self.startMotion(self.shoot)
+            self.walk()
 
-            if robot.step(self.timeStep) == -1:
-                break
+            self.t += self.timeStep / 1000
+
+
+def map_range(x, in_min, in_max, out_min, out_max):
+    return (x - in_min) * (out_max - out_min) / (in_max - in_min) + out_min
+
+
+def constrain(val, min_val, max_val):
+    return min(max_val, max(min_val, val))
 
 
 robot = Nao()
