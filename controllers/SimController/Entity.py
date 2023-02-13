@@ -66,22 +66,25 @@ class Player(Entity):
             circle_radius=0.15,
         )
 
-    def senseDistances(self, players):
-        self.distances = []
-        orientation = self.getOrientation()
-        for angle in np.linspace(0, 2 * 3.14, 10)[:-1]:
-            dir_vector = np.array(
-                (np.cos(angle + orientation), np.sin(angle + orientation))
-            )
-            self.distances.append(self.sense(players, dir_vector))
+        self.sensor_angles = np.linspace(0, 2 * 3.14, 20)[:-1]
+        self.possible_distances = np.linspace(0, 3, int(3 / (2 * self.circle_radius)))
+        self.distances = np.zeros(self.sensor_angles.size)
 
-    def sense(self, players, dir_vector):
-        for dist in np.linspace(0, 3, 30):
-            point = self.position + (dist * dir_vector)
+    def senseDistances(self, players):
+        orientation = self.getOrientation()
+        for idx, angle in enumerate(self.sensor_angles):
+            sensor_dir = angle + orientation
+            dir = np.array((np.cos(sensor_dir), np.sin(sensor_dir)))
+            self.distances[idx] = self.sense(players, dir)
+
+    def sense(self, players, dir):
+        for dist in self.possible_distances:
+            point = self.position + (dist * dir)
             for player in players:
                 if player != self and player.isInside(point):
                     return dist
-        return 3
+        else:
+            return 3
 
 
 class Ball(Entity):

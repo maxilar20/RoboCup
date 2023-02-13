@@ -107,14 +107,14 @@ class GUI:
             pygame.draw.circle(
                 self.screen,
                 color,
-                self.mapToGUI(player.getPosition()),
+                self.mapToGUI(player.position),
                 self.scaleToGUI(player.circle_radius),
             )
             pygame.draw.circle(
                 self.screen,
                 (0, 255, 0),
                 self.mapToGUI(
-                    player.getPosition()
+                    player.position
                     + 0.9
                     * np.array(
                         (
@@ -129,7 +129,7 @@ class GUI:
                 self.screen,
                 (0, 255, 0),
                 self.mapToGUI(
-                    player.getPosition()
+                    player.position
                     + 0.9
                     * np.array(
                         (
@@ -144,12 +144,9 @@ class GUI:
     def drawDistances(self, players):
         for player in players:
             orientation = player.getOrientation()
-            for angle, distance in zip(
-                np.linspace(0, 2 * 3.14, 10)[:-1], player.distances
-            ):
-                dir_vector = np.array(
-                    (np.cos(angle + orientation), np.sin(angle + orientation))
-                )
+            for angle, distance in zip(player.sensor_angles, player.distances):
+                sensor_dir = angle + orientation
+                dir_vector = np.array((np.cos(sensor_dir), np.sin(sensor_dir)))
                 pygame.draw.lines(
                     self.screen,
                     (255, 255, 255),

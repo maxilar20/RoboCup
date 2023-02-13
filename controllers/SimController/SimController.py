@@ -3,6 +3,11 @@ from Entity import *
 from GUI import *
 import time
 from pygame import math
+import cProfile
+import pstats
+
+
+profile = cProfile.Profile()
 
 
 class SimController(Supervisor):
@@ -34,11 +39,8 @@ class SimController(Supervisor):
         for player in self.players:
             player.getPosition()
 
-        start_time = time.time()
-
         for player in self.players:
             player.senseDistances(self.players)
-        print("--- %s seconds ---" % (time.time() - start_time))
 
         simcontroller.get_time()
 
@@ -192,6 +194,8 @@ if __name__ == "__main__":
 
     TIME_STEP = 32
     while simcontroller.step(TIME_STEP) != -1:
-        simcontroller.run()
+        profile.runcall(simcontroller.run)
+        # ps = pstats.Stats(profile)
+        # ps.print_stats()
 
     pygame.quit()
