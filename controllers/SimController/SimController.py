@@ -1,4 +1,4 @@
-from controller import Supervisor, Keyboard
+from controller import Supervisor
 from Entity import *
 from GUI import *
 import time
@@ -30,11 +30,22 @@ class SimController(Supervisor):
     def run(self):
         simcontroller.get_time()
 
-        score_text = f"    Red {self.red_score} | {self.blue_score} Blue"
-        self.GUI.runGUI(
-            self.ball, self.players, self.time_passed_text + score_text, self.boundaries
-        )
+        self.runGUI()
 
+        self.moveRobot()
+
+        if simcontroller.time_up():
+            simcontroller.end_simulation()
+
+        if simcontroller.check_goal():
+            simcontroller.reset_simulation()
+
+        if simcontroller.ball_out():
+            simcontroller.reset_simulation()
+
+        # TODO: Check if there's been message fault
+
+    def moveRobot(self, channel=0):
         message = [0.0, 0.0, 0.0]
 
         keys = pygame.key.get_pressed()
@@ -53,16 +64,11 @@ class SimController(Supervisor):
 
         self.emitter.send(message)
 
-        if simcontroller.time_up():
-            simcontroller.end_simulation()
-
-        if simcontroller.check_goal():
-            simcontroller.reset_simulation()
-
-        if simcontroller.ball_out():
-            simcontroller.reset_simulation()
-
-        # TODO: Check if there's been message fault
+    def runGUI(self):
+        score_text = f"    Red {self.red_score} | {self.blue_score} Blue"
+        self.GUI.runGUI(
+            self.ball, self.players, self.time_passed_text + score_text, self.boundaries
+        )
 
     def reset_simulation(self):
         self.ball.reset()
