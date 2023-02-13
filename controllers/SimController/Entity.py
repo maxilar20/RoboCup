@@ -1,7 +1,11 @@
 class Entity:
-    def __init__(self, robot, name, DEF, translation, rotation, custom_args=""):
-
+    def __init__(
+        self, robot, name, DEF, translation, rotation, custom_args="", circle_radius=0.1
+    ):
+        self.name = name
         self.translation = translation
+        self.rotation = rotation
+        self.circle_radius = circle_radius
 
         root_node = robot.getRoot()
         children_field = root_node.getField("children")
@@ -32,33 +36,38 @@ class Entity:
 class Player(Entity):
     def __init__(self, robot, player, team, player_position, translation, channel):
 
-        self.name = f"{team}_{player}"
+        # Player Attributes
         self.team = team
         self.player_position = player_position
 
-        RED_COLOR = [1, 0, 0]
-        BLUE_COLOR = [0, 0, 1]
-
+        # Node Spawning
         if team == "red":
-            color = RED_COLOR
-            self.rotation = "0 0 1 0"
+            color = [1, 0, 0]
+            rotation = "0 0 1 0"
         else:
-            color = BLUE_COLOR
-            self.rotation = "0 0 1 3.1415"
+            color = [0, 0, 1]
+            rotation = "0 0 1 3.1415"
 
         custom_args = f"customColor {color} channel {channel}"
+
         super().__init__(
-            robot, self.name, "Nao", translation, self.rotation, custom_args
+            robot,
+            f"{team}_{player}",
+            "Nao",
+            translation,
+            rotation,
+            custom_args,
+            circle_radius=0.15,
         )
 
 
 class Ball(Entity):
     def __init__(self, robot):
-
-        self.name = f"ball"
-        self.translation = "0 0 0"
-        self.rotation = "0 0 0 0"
-
         super().__init__(
-            robot, self.name, "RobocupSoccerBall", self.translation, self.rotation
+            robot,
+            "ball",
+            "RobocupSoccerBall",
+            "0 0 0",
+            "0 0 0 0",
+            circle_radius=0.1,
         )

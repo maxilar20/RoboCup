@@ -36,7 +36,7 @@ class GUI:
         self.screen.fill((0, 120, 0))
 
         self.drawField(boundaries)
-        self.drawBall(ball.getPosition())
+        self.drawBall(ball)
         self.drawText(upper_text)
         self.drawPlayers(players)
 
@@ -88,8 +88,13 @@ class GUI:
             2,
         )
 
-    def drawBall(self, ball_pos, color=(255, 255, 255), size=5):
-        pygame.draw.circle(self.screen, color, self.mapToGUI(ball_pos), size)
+    def drawBall(self, ball_obj, color=(255, 255, 255)):
+        pygame.draw.circle(
+            self.screen,
+            color,
+            self.mapToGUI(ball_obj.getPosition()),
+            self.scaleToGUI(ball_obj.circle_radius),
+        )
 
     def drawPlayers(self, players):
         for player in players:
@@ -98,28 +103,41 @@ class GUI:
             elif player.team == "blue":
                 color = (0, 0, 255)
 
-            self.drawBall(player.getPosition(), color=color, size=5)
-            self.drawBall(
-                np.array(player.getPosition())
-                + np.array(
-                    (
-                        0.1 * np.cos(player.getOrientation() + 1),
-                        0.1 * np.sin(player.getOrientation() + 1),
-                    )
-                ),
-                color=(0, 255, 0),
-                size=2,
+            pygame.draw.circle(
+                self.screen,
+                color,
+                self.mapToGUI(player.getPosition()),
+                self.scaleToGUI(player.circle_radius),
             )
-            self.drawBall(
-                np.array(player.getPosition())
-                + np.array(
-                    (
-                        0.1 * np.cos(player.getOrientation() - 1),
-                        0.1 * np.sin(player.getOrientation() - 1),
-                    )
+            pygame.draw.circle(
+                self.screen,
+                (0, 255, 0),
+                self.mapToGUI(
+                    np.array(player.getPosition())
+                    + 0.9
+                    * np.array(
+                        (
+                            player.circle_radius * np.cos(player.getOrientation() + 1),
+                            player.circle_radius * np.sin(player.getOrientation() + 1),
+                        )
+                    ),
                 ),
-                color=(0, 255, 0),
-                size=2,
+                self.scaleToGUI(player.circle_radius) * 0.5,
+            )
+            pygame.draw.circle(
+                self.screen,
+                (0, 255, 0),
+                self.mapToGUI(
+                    np.array(player.getPosition())
+                    + 0.9
+                    * np.array(
+                        (
+                            player.circle_radius * np.cos(player.getOrientation() - 1),
+                            player.circle_radius * np.sin(player.getOrientation() - 1),
+                        )
+                    ),
+                ),
+                self.scaleToGUI(player.circle_radius) * 0.5,
             )
 
     def mapToGUI(self, pos):
