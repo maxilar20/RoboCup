@@ -40,6 +40,7 @@ class GUI:
         self.drawBall(ball)
         self.drawText(upper_text)
         self.drawPlayers(players)
+        self.drawDistances(players)
 
         # Flip the display
         pygame.display.flip()
@@ -139,6 +140,26 @@ class GUI:
                 ),
                 self.scaleToGUI(player.circle_radius) * 0.5,
             )
+
+    def drawDistances(self, players):
+        for player in players:
+            orientation = player.getOrientation()
+            for angle, distance in zip(
+                np.linspace(0, 2 * 3.14, 10)[:-1], player.distances
+            ):
+                dir_vector = np.array(
+                    (np.cos(angle + orientation), np.sin(angle + orientation))
+                )
+                pygame.draw.lines(
+                    self.screen,
+                    (255, 255, 255),
+                    True,
+                    [
+                        self.mapToGUI(player.position),
+                        self.mapToGUI(player.position + distance * dir_vector),
+                    ],
+                    1,
+                )
 
     def mapToGUI(self, pos):
         return math.Vector2(

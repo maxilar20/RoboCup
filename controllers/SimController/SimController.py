@@ -29,11 +29,20 @@ class SimController(Supervisor):
         self.emitter = self.getDevice("emitter")
 
     def run(self):
+        self.moveRobot()
+
+        for player in self.players:
+            player.getPosition()
+
+        start_time = time.time()
+
+        for player in self.players:
+            player.senseDistances(self.players)
+        print("--- %s seconds ---" % (time.time() - start_time))
+
         simcontroller.get_time()
 
         self.runGUI()
-
-        self.moveRobot()
 
         if simcontroller.time_up():
             simcontroller.end_simulation()
