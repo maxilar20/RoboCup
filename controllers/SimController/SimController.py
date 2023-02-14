@@ -16,11 +16,6 @@ class SimController(Supervisor):
 
         self.GUI = GUI()
 
-        self.players = [
-            Player(self, **player, GUI=self.GUI) for player in player_definitions
-        ]
-        self.ball = Ball(self, self.GUI)
-
         self.field = Field(boundaries, self.GUI)
 
         self.debug = False
@@ -37,6 +32,13 @@ class SimController(Supervisor):
         self.keyboard.enable(10 * self.timeStep)
 
         self.emitter = self.getDevice("emitter")
+
+        self.ball = Ball(self, self.GUI)
+
+        self.players = [
+            Player(self, **player, GUI=self.GUI, emitter=self.emitter, ball=self.ball)
+            for player in player_definitions
+        ]
 
     def run(self):
         ###################### SIMULATION ######################
@@ -64,7 +66,11 @@ class SimController(Supervisor):
 
         ######################   Run  ######################
 
-        self.moveRobot()
+        # for player in self.players:
+        #     player.act()
+        self.players[0].act()
+
+        # self.moveRobot()
 
         ######################   GUI  ######################
         self.GUI.run()

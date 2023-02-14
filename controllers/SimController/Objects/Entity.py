@@ -40,7 +40,7 @@ class Entity:
             return (2 * 3.1415) - self.orientation_field.getSFVec3f()[3]
 
     def isInside(self, point):
-        return point.distance_squared_to(self.position) < self.circle_radius_sq
+        return point.distance_squared_to(self.position) < 2 * self.circle_radius_sq
 
     def reset(self):
         self.position_field.setSFVec3f([float(i) for i in self.translation.split()])
