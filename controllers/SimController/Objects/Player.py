@@ -32,19 +32,21 @@ class Player(Entity):
         )
 
         self.sensor_angles = np.linspace(0, 2 * 3.14, 20)[:-1]
-        self.possible_distances = np.linspace(0, 3, int(3 / (2 * self.circle_radius)))
+        self.possible_distances = np.linspace(0, 3, 20)
         self.distances = np.zeros(self.sensor_angles.size)
 
-    def senseDistances(self, players):
+    def senseDistances(self, field, players):
         orientation = self.getOrientation()
         for idx, angle in enumerate(self.sensor_angles):
             sensor_dir = angle + orientation
             dir = np.array((np.cos(sensor_dir), np.sin(sensor_dir)))
-            self.distances[idx] = self.sense(players, dir)
+            self.distances[idx] = self.sense(field, players, dir)
 
-    def sense(self, players, dir):
+    def sense(self, field, players, dir):
         for dist in self.possible_distances:
             point = self.position + (dist * dir)
+            if not field.isInside(point):
+                return dist
             for player in players:
                 if player != self and player.isInside(point):
                     return dist

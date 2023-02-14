@@ -59,7 +59,7 @@ class SimController(Supervisor):
             player.getPosition()
 
         for player in self.players:
-            player.senseDistances(self.players)
+            player.senseDistances(self.field, self.players)
 
         ######################   Run  ######################
 
