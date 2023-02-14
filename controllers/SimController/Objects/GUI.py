@@ -31,12 +31,10 @@ class GUI:
         ]
         user32.SetWindowPos(hwnd, -1, 0, 0, 0, 0, 0x0001)
 
-        self.font = pygame.font.Font("freesansbold.ttf", 15)
+        self.font = pygame.font.Font("freesansbold.ttf", 20)
 
-    def run(self, upper_text):
+    def run(self):
         self.screen.fill((0, 120, 0))
-
-        self.drawText(upper_text)
 
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
@@ -46,10 +44,13 @@ class GUI:
         # Flip the display
         pygame.display.flip()
 
-    def drawText(self, upper_text):
-        text = self.font.render(upper_text, True, (255, 255, 255), (10, 10, 10))
+    def drawText(self, time_passed, red_score, blue_score):
+        score_text = f"Red {red_score} | {blue_score} Blue      "
+        text = self.font.render(
+            score_text + time_passed, True, (0, 0, 0), (255, 255, 255)
+        )
         textRect = text.get_rect()
-        textRect.topleft = (30, 10)
+        textRect.midbottom = (self.window_size[0] / 2, self.window_size[1])
         self.screen.blit(text, textRect)
 
     def mapToGUI(self, pos):

@@ -2,6 +2,7 @@ from controller import Supervisor
 from Objects.Player import *
 from Objects.Ball import *
 from Objects.Field import *
+from Objects.Button import *
 from Objects.GUI import *
 from Objects.CONFIG import *
 import time
@@ -21,6 +22,9 @@ class SimController(Supervisor):
         self.ball = Ball(self, self.GUI)
 
         self.field = Field(boundaries, self.GUI)
+
+        self.debug = False
+        self.button1 = Button(self.GUI.screen, (10, 10), "Debug", 20, "black on white")
 
         self.start_game_time_seconds = time.time()
         self.max_game_time_secs = max_game_time_mins * 60
@@ -62,15 +66,19 @@ class SimController(Supervisor):
         self.moveRobot()
 
         ######################   GUI  ######################
-        score_text = f"    Red {self.red_score} | {self.blue_score} Blue"
-        self.GUI.run(self.time_passed_text + score_text)
+        self.GUI.run()
+
+        self.field.show()
 
         for player in self.players:
             player.showPlayer()
-            # player.showSensors()
+            if self.debug:
+                player.showSensors()
 
         self.ball.show()
-        self.field.show()
+
+        self.debug = self.button1.update()
+        self.GUI.drawText(self.time_passed_text, self.red_score, self.blue_score)
 
         self.GUI.flip()
 
