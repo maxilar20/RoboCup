@@ -74,7 +74,6 @@ class Nao(Robot):
             self.new_stride = [0, 0, 0, 0]
 
         if self.start_t < self.t < self.end_t:
-
             self.moveLegs(
                 map_range(
                     self.t,

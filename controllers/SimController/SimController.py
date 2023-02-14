@@ -1,5 +1,7 @@
 from controller import Supervisor
-from Objects.Entity import *
+from Objects.Player import *
+from Objects.Ball import *
+from Objects.Field import *
 from Objects.GUI import *
 from Objects.CONFIG import *
 import time
@@ -11,16 +13,20 @@ class SimController(Supervisor):
 
         self.boundaries = boundaries
 
-        self.players = [Player(self, **player) for player in player_definitions]
-        self.ball = Ball(self)
+        self.GUI = GUI()
+
+        self.players = [
+            Player(self, **player, GUI=self.GUI) for player in player_definitions
+        ]
+        self.ball = Ball(self, self.GUI)
+
+        self.field = Field(boundaries, self.GUI)
 
         self.start_game_time_seconds = time.time()
         self.max_game_time_secs = max_game_time_mins * 60
 
         self.red_score = 0
         self.blue_score = 0
-
-        self.GUI = GUI()
 
         self.keyboard = self.getKeyboard()
         self.timeStep = int(self.getBasicTimeStep())
@@ -43,7 +49,7 @@ class SimController(Supervisor):
 
         # TODO: Check if there's been a fault
 
-        ######################   Players  ######################
+        ######################   Update  ######################
 
         for player in self.players:
             player.getPosition()
@@ -51,10 +57,22 @@ class SimController(Supervisor):
         for player in self.players:
             player.senseDistances(self.players)
 
+        ######################   Run  ######################
+
         self.moveRobot()
 
         ######################   GUI  ######################
-        self.runGUI()
+        score_text = f"    Red {self.red_score} | {self.blue_score} Blue"
+        self.GUI.run(self.time_passed_text + score_text)
+
+        for player in self.players:
+            player.showPlayer()
+            # player.showSensors()
+
+        self.ball.show()
+        self.field.show()
+
+        self.GUI.flip()
 
     def moveRobot(self, channel=0):
         message = [0.0, 0.0, 0.0]
@@ -74,12 +92,6 @@ class SimController(Supervisor):
             message[1] += -1.0
 
         self.emitter.send(message)
-
-    def runGUI(self):
-        score_text = f"    Red {self.red_score} | {self.blue_score} Blue"
-        self.GUI.run(
-            self.ball, self.players, self.time_passed_text + score_text, self.boundaries
-        )
 
     def reset_simulation(self):
         self.ball.reset()
