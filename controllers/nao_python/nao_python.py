@@ -180,57 +180,13 @@ class Nao(Robot):
             self.legJoints[prefix + "HipYawPitch"]["joint"].setPosition(pos[3])
 
     def walk(self):
-        stride = self.stride
-
-        motion = [
-            (
-                (0.14, stride[1], constrain(stride[0], -0.05, 0), -stride[2]),
-                (0.16, 0, -0.05, stride[2]),
-            ),
-            (
-                (0.16, stride[1], constrain(stride[0], -0.05, 0), -stride[2]),
-                (0.16, 0, -0.05, 0),
-            ),
-            (
-                (0.16, 0, 0.05, -stride[2]),
-                (0.16, -stride[1], -constrain(stride[0], -0.05, 0), 0),
-            ),
-            (
-                (0.16, 0, 0.05, -stride[2]),
-                (0.14, -stride[1], -constrain(stride[0], -0.05, 0), stride[2]),
-            ),
-            (
-                (0.16, 0, 0.05, 0),
-                (0.14, 0, 0, stride[2]),
-            ),
-            (
-                (0.16, 0, 0.05, 0),
-                (0.14, stride[1], constrain(stride[0], 0, 0.05), stride[2]),
-            ),
-            (
-                (0.16, 0, 0.05, 0),
-                (0.16, stride[1], constrain(stride[0], 0, 0.05), stride[2]),
-            ),
-            (
-                (0.16, -stride[1], -constrain(stride[0], 0, 0.05), 0),
-                (0.16, 0, -0.05, stride[2]),
-            ),
-            (
-                (0.14, -stride[1], -constrain(stride[0], 0, 0.05), -stride[2]),
-                (0.16, 0, -0.05, 0),
-            ),
-            (
-                (0.14, 0, 0, -stride[2]),
-                (0.16, 0, -0.05, 0),
-            ),
-        ]
 
         if self.t > self.end_t:
             self.start_t = self.t
-            self.end_t = self.start_t + 0.12
+            self.end_t = self.start_t + self.walk_speed
             self.idx += 1
 
-        if self.idx > len(motion) - 1:
+        if self.idx > len(self.motion) - 1:
             self.idx = 0
 
         if self.idx in [1, 5]:
@@ -244,15 +200,15 @@ class Nao(Robot):
                     self.t,
                     self.start_t,
                     self.end_t,
-                    np.array(motion[self.idx - 1][0]),
-                    np.array(motion[self.idx][0]),
+                    np.array(self.motion[self.idx - 1][0]),
+                    np.array(self.motion[self.idx][0]),
                 ),
                 map_range(
                     self.t,
                     self.start_t,
                     self.end_t,
-                    np.array(motion[self.idx - 1][1]),
-                    np.array(motion[self.idx][1]),
+                    np.array(self.motion[self.idx - 1][1]),
+                    np.array(self.motion[self.idx][1]),
                 ),
             )
 
@@ -264,7 +220,8 @@ class Nao(Robot):
         self.findAndEnableDevices()
         self.loadMotionFiles()
 
-    def run(self):
+        self.walk_speed = 0.12
+
         self.handWave.setLoop(False)
         self.handWave.play()
         self.currentlyPlaying = self.handWave
@@ -275,19 +232,43 @@ class Nao(Robot):
         self.end_t = self.start_t + 1
         self.stride = [0, 0, 0, 0]
         self.new_stride = [0, 0, 0, 0]
+        self.old_stride = []
 
-        # until a key is pressed
-        key = -1
+    def run(self):
         while robot.step(self.timeStep) != -1:
 
-            if self.receiver.getQueueLength() > 0:
-                a = self.receiver.getFloats()
-                self.receiver.nextPacket()
-                self.new_stride = [0.04 * a[0], 0.075 * a[1], 0.5 * a[2]]
+            self.receiveMessage()
+
+            if self.old_stride != self.new_stride:
+                self.updateStride()
 
             self.walk()
 
             self.t += self.timeStep / 1000
+
+    def receiveMessage(self):
+        if self.receiver.getQueueLength() > 0:
+            a = self.receiver.getFloats()
+            self.receiver.nextPacket()
+            self.old_stride = self.new_stride
+            self.new_stride = [0.04 * a[0], 0.075 * a[1], 0.5 * a[2]]
+
+    def updateStride(self):
+        strd = self.stride
+        cnstd_l = constrain(strd[0], 0.05, 0)
+        cnstd_r = constrain(strd[0], 0, 0.05)
+        self.motion = [
+            ((0.14, strd[1], cnstd_l, -strd[2]), (0.16, 0, -0.05, strd[2])),
+            ((0.16, strd[1], cnstd_l, -strd[2]), (0.16, 0, -0.05, 0)),
+            ((0.16, 0, 0.05, -strd[2]), (0.16, -strd[1], -cnstd_l, 0)),
+            ((0.16, 0, 0.05, -strd[2]), (0.14, -strd[1], -cnstd_l, strd[2])),
+            ((0.16, 0, 0.05, 0), (0.14, 0, 0, strd[2])),
+            ((0.16, 0, 0.05, 0), (0.14, strd[1], cnstd_r, strd[2])),
+            ((0.16, 0, 0.05, 0), (0.16, strd[1], cnstd_r, strd[2])),
+            ((0.16, -strd[1], -cnstd_r, 0), (0.16, 0, -0.05, strd[2])),
+            ((0.14, -strd[1], -cnstd_r, -strd[2]), (0.16, 0, -0.05, 0)),
+            ((0.14, 0, 0, -strd[2]), (0.16, 0, -0.05, 0)),
+        ]
 
 
 def map_range(x, in_min, in_max, out_min, out_max):
@@ -298,5 +279,6 @@ def constrain(val, min_val, max_val):
     return min(max_val, max(min_val, val))
 
 
-robot = Nao()
-robot.run()
+if __name__ == "__main__":
+    robot = Nao()
+    robot.run()
