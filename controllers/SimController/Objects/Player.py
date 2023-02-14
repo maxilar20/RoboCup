@@ -32,7 +32,7 @@ class Player(Entity):
         )
 
         self.sensor_angles = np.linspace(0, 2 * 3.14, 20)[:-1]
-        self.possible_distances = np.linspace(0, 3, 20)
+        self.possible_distances = np.linspace(0, 3, 10)
         self.distances = np.zeros(self.sensor_angles.size)
 
     def senseDistances(self, field, players):

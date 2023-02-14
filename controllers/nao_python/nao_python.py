@@ -94,13 +94,14 @@ class Nao(Robot):
     def receiveMessage(self):
         if self.receiver.getQueueLength() > 0:
             a = self.receiver.getFloats()
+            print(a)
             self.receiver.nextPacket()
             self.old_stride = self.new_stride
             self.new_stride = [0.04 * a[0], 0.075 * a[1], 0.5 * a[2]]
 
     def updateStride(self):
         strd = self.stride
-        cnstd_l = constrain(strd[0], 0.05, 0)
+        cnstd_l = constrain(strd[0], -0.05, 0)
         cnstd_r = constrain(strd[0], 0, 0.05)
         self.motion = [
             ((0.14, strd[1], cnstd_l, -strd[2]), (0.16, 0, -0.05, strd[2])),
