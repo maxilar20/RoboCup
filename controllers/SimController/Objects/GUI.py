@@ -13,7 +13,7 @@ class GUI:
         self.window_size = window_size
         self.screen = pygame.display.set_mode(self.window_size)
         pygame.display.set_caption("Robocup")
-        icon = pygame.image.load("icon.png")
+        icon = pygame.image.load("Objects/icon.png")
         pygame.display.set_icon(icon)
 
         hwnd = pygame.display.get_wm_info()["window"]
@@ -33,7 +33,7 @@ class GUI:
 
         self.font = pygame.font.Font("freesansbold.ttf", 15)
 
-    def runGUI(self, ball, players, upper_text, boundaries):
+    def run(self, ball, players, upper_text, boundaries):
         self.screen.fill((0, 120, 0))
 
         self.drawField(boundaries)

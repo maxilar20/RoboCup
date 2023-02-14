@@ -6,7 +6,116 @@ import numpy as np
 class Nao(Robot):
     PHALANX_MAX = 8
 
-    # load motion files
+    def __init__(self):
+        Robot.__init__(self)
+        self.currentlyPlaying = False
+
+        # initialize stuff
+        self.findAndEnableDevices()
+        self.loadMotionFiles()
+
+        self.walk_speed = 0.12
+
+        self.handWave.setLoop(False)
+        self.handWave.play()
+        self.currentlyPlaying = self.handWave
+
+        self.idx = 0
+        self.t = 0
+        self.start_t = self.t
+        self.end_t = self.start_t + 1
+        self.stride = [0, 0, 0, 0]
+        self.new_stride = [0, 0, 0, 0]
+        self.old_stride = []
+
+    def run(self):
+        while robot.step(self.timeStep) != -1:
+
+            self.receiveMessage()
+
+            if self.old_stride != self.new_stride:
+                self.updateStride()
+
+            self.walk()
+
+            self.t += self.timeStep / 1000
+
+    def moveLegs(self, left, right):
+        prefixes = ["L", "R"]
+        for prefix, pos in zip(prefixes, [left, right]):
+            L = math.sqrt(pos[0] ** 2 + pos[1] ** 2 + pos[2] ** 2)
+            a = math.acos(((0.1**2) - (0.1**2) + (L**2)) / (2 * 0.1 * L))
+
+            c = math.acos(((0.1**2) + (0.1**2) - (L**2)) / (2 * 0.1 * 0.1))
+            alpha = math.atan2(pos[1], pos[0])
+            H = a + alpha
+            b = math.pi - c
+            hip = -math.asin(pos[2] / L)
+
+            self.legJoints[prefix + "HipPitch"]["joint"].setPosition(-H)
+            self.legJoints[prefix + "KneePitch"]["joint"].setPosition(b)
+            self.legJoints[prefix + "AnklePitch"]["joint"].setPosition(H - b)
+            self.legJoints[prefix + "HipRoll"]["joint"].setPosition(hip)
+            self.legJoints[prefix + "AnkleRoll"]["joint"].setPosition(-hip)
+            self.legJoints[prefix + "HipYawPitch"]["joint"].setPosition(pos[3])
+
+    def walk(self):
+
+        if self.t > self.end_t:
+            self.start_t = self.t
+            self.end_t = self.start_t + self.walk_speed
+            self.idx += 1
+
+        if self.idx > len(self.motion) - 1:
+            self.idx = 0
+
+        if self.idx in [1, 5]:
+            self.stride = self.new_stride
+            self.new_stride = [0, 0, 0, 0]
+
+        if self.start_t < self.t < self.end_t:
+
+            self.moveLegs(
+                map_range(
+                    self.t,
+                    self.start_t,
+                    self.end_t,
+                    np.array(self.motion[self.idx - 1][0]),
+                    np.array(self.motion[self.idx][0]),
+                ),
+                map_range(
+                    self.t,
+                    self.start_t,
+                    self.end_t,
+                    np.array(self.motion[self.idx - 1][1]),
+                    np.array(self.motion[self.idx][1]),
+                ),
+            )
+
+    def receiveMessage(self):
+        if self.receiver.getQueueLength() > 0:
+            a = self.receiver.getFloats()
+            self.receiver.nextPacket()
+            self.old_stride = self.new_stride
+            self.new_stride = [0.04 * a[0], 0.075 * a[1], 0.5 * a[2]]
+
+    def updateStride(self):
+        strd = self.stride
+        cnstd_l = constrain(strd[0], 0.05, 0)
+        cnstd_r = constrain(strd[0], 0, 0.05)
+        self.motion = [
+            ((0.14, strd[1], cnstd_l, -strd[2]), (0.16, 0, -0.05, strd[2])),
+            ((0.16, strd[1], cnstd_l, -strd[2]), (0.16, 0, -0.05, 0)),
+            ((0.16, 0, 0.05, -strd[2]), (0.16, -strd[1], -cnstd_l, 0)),
+            ((0.16, 0, 0.05, -strd[2]), (0.14, -strd[1], -cnstd_l, strd[2])),
+            ((0.16, 0, 0.05, 0), (0.14, 0, 0, strd[2])),
+            ((0.16, 0, 0.05, 0), (0.14, strd[1], cnstd_r, strd[2])),
+            ((0.16, 0, 0.05, 0), (0.16, strd[1], cnstd_r, strd[2])),
+            ((0.16, -strd[1], -cnstd_r, 0), (0.16, 0, -0.05, strd[2])),
+            ((0.14, -strd[1], -cnstd_r, -strd[2]), (0.16, 0, -0.05, 0)),
+            ((0.14, 0, 0, -strd[2]), (0.16, 0, -0.05, 0)),
+        ]
+
     def loadMotionFiles(self):
         self.handWave = Motion("./motions/HandWave.motion")
         self.forwards = Motion("./motions/Forwards.motion")
@@ -18,11 +127,9 @@ class Nao(Robot):
         self.shoot = Motion("./motions/Shoot.motion")
 
     def startMotion(self, motion):
-        # interrupt current motion
         if self.currentlyPlaying:
             self.currentlyPlaying.stop()
 
-        # start new motion
         motion.play()
         self.currentlyPlaying = motion
 
@@ -159,116 +266,6 @@ class Nao(Robot):
         # Receiver
         self.receiver = self.getDevice("receiver")
         self.receiver.enable(self.timeStep)
-
-    def moveLegs(self, left, right):
-        prefixes = ["L", "R"]
-        for prefix, pos in zip(prefixes, [left, right]):
-            L = math.sqrt(pos[0] ** 2 + pos[1] ** 2 + pos[2] ** 2)
-            a = math.acos(((0.1**2) - (0.1**2) + (L**2)) / (2 * 0.1 * L))
-
-            c = math.acos(((0.1**2) + (0.1**2) - (L**2)) / (2 * 0.1 * 0.1))
-            alpha = math.atan2(pos[1], pos[0])
-            H = a + alpha
-            b = math.pi - c
-            hip = -math.asin(pos[2] / L)
-
-            self.legJoints[prefix + "HipPitch"]["joint"].setPosition(-H)
-            self.legJoints[prefix + "KneePitch"]["joint"].setPosition(b)
-            self.legJoints[prefix + "AnklePitch"]["joint"].setPosition(H - b)
-            self.legJoints[prefix + "HipRoll"]["joint"].setPosition(hip)
-            self.legJoints[prefix + "AnkleRoll"]["joint"].setPosition(-hip)
-            self.legJoints[prefix + "HipYawPitch"]["joint"].setPosition(pos[3])
-
-    def walk(self):
-
-        if self.t > self.end_t:
-            self.start_t = self.t
-            self.end_t = self.start_t + self.walk_speed
-            self.idx += 1
-
-        if self.idx > len(self.motion) - 1:
-            self.idx = 0
-
-        if self.idx in [1, 5]:
-            self.stride = self.new_stride
-            self.new_stride = [0, 0, 0, 0]
-
-        if self.start_t < self.t < self.end_t:
-
-            self.moveLegs(
-                map_range(
-                    self.t,
-                    self.start_t,
-                    self.end_t,
-                    np.array(self.motion[self.idx - 1][0]),
-                    np.array(self.motion[self.idx][0]),
-                ),
-                map_range(
-                    self.t,
-                    self.start_t,
-                    self.end_t,
-                    np.array(self.motion[self.idx - 1][1]),
-                    np.array(self.motion[self.idx][1]),
-                ),
-            )
-
-    def __init__(self):
-        Robot.__init__(self)
-        self.currentlyPlaying = False
-
-        # initialize stuff
-        self.findAndEnableDevices()
-        self.loadMotionFiles()
-
-        self.walk_speed = 0.12
-
-        self.handWave.setLoop(False)
-        self.handWave.play()
-        self.currentlyPlaying = self.handWave
-
-        self.idx = 0
-        self.t = 0
-        self.start_t = self.t
-        self.end_t = self.start_t + 1
-        self.stride = [0, 0, 0, 0]
-        self.new_stride = [0, 0, 0, 0]
-        self.old_stride = []
-
-    def run(self):
-        while robot.step(self.timeStep) != -1:
-
-            self.receiveMessage()
-
-            if self.old_stride != self.new_stride:
-                self.updateStride()
-
-            self.walk()
-
-            self.t += self.timeStep / 1000
-
-    def receiveMessage(self):
-        if self.receiver.getQueueLength() > 0:
-            a = self.receiver.getFloats()
-            self.receiver.nextPacket()
-            self.old_stride = self.new_stride
-            self.new_stride = [0.04 * a[0], 0.075 * a[1], 0.5 * a[2]]
-
-    def updateStride(self):
-        strd = self.stride
-        cnstd_l = constrain(strd[0], 0.05, 0)
-        cnstd_r = constrain(strd[0], 0, 0.05)
-        self.motion = [
-            ((0.14, strd[1], cnstd_l, -strd[2]), (0.16, 0, -0.05, strd[2])),
-            ((0.16, strd[1], cnstd_l, -strd[2]), (0.16, 0, -0.05, 0)),
-            ((0.16, 0, 0.05, -strd[2]), (0.16, -strd[1], -cnstd_l, 0)),
-            ((0.16, 0, 0.05, -strd[2]), (0.14, -strd[1], -cnstd_l, strd[2])),
-            ((0.16, 0, 0.05, 0), (0.14, 0, 0, strd[2])),
-            ((0.16, 0, 0.05, 0), (0.14, strd[1], cnstd_r, strd[2])),
-            ((0.16, 0, 0.05, 0), (0.16, strd[1], cnstd_r, strd[2])),
-            ((0.16, -strd[1], -cnstd_r, 0), (0.16, 0, -0.05, strd[2])),
-            ((0.14, -strd[1], -cnstd_r, -strd[2]), (0.16, 0, -0.05, 0)),
-            ((0.14, 0, 0, -strd[2]), (0.16, 0, -0.05, 0)),
-        ]
 
 
 def map_range(x, in_min, in_max, out_min, out_max):

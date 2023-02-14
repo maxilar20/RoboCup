@@ -1,7 +1,7 @@
 from controller import Supervisor
-from Entity import *
-from GUI import *
-from CONFIG import *
+from Objects.Entity import *
+from Objects.GUI import *
+from Objects.CONFIG import *
 import time
 
 
@@ -29,17 +29,8 @@ class SimController(Supervisor):
         self.emitter = self.getDevice("emitter")
 
     def run(self):
-        self.moveRobot()
-
-        for player in self.players:
-            player.getPosition()
-
-        for player in self.players:
-            player.senseDistances(self.players)
-
+        ###################### SIMULATION ######################
         simcontroller.get_time()
-
-        self.runGUI()
 
         if simcontroller.time_up():
             simcontroller.end_simulation()
@@ -50,7 +41,20 @@ class SimController(Supervisor):
         if simcontroller.ball_out():
             simcontroller.reset_simulation()
 
-        # TODO: Check if there's been message fault
+        # TODO: Check if there's been a fault
+
+        ######################   Players  ######################
+
+        for player in self.players:
+            player.getPosition()
+
+        for player in self.players:
+            player.senseDistances(self.players)
+
+        self.moveRobot()
+
+        ######################   GUI  ######################
+        self.runGUI()
 
     def moveRobot(self, channel=0):
         message = [0.0, 0.0, 0.0]
@@ -73,7 +77,7 @@ class SimController(Supervisor):
 
     def runGUI(self):
         score_text = f"    Red {self.red_score} | {self.blue_score} Blue"
-        self.GUI.runGUI(
+        self.GUI.run(
             self.ball, self.players, self.time_passed_text + score_text, self.boundaries
         )
 
