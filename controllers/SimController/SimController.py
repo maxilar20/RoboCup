@@ -49,6 +49,7 @@ class SimController(Supervisor):
             simcontroller.reset_simulation()
 
         if simcontroller.ball_out():
+            print("Ball Out")
             simcontroller.reset_simulation()
 
         # TODO: Check if there's been a fault
@@ -107,17 +108,19 @@ class SimController(Supervisor):
             player.reset()
 
     def check_goal(self):
-        if isInside(self.ball.getPosition(), self.boundaries["goal_red"]):
+        if self.field.isInside(self.ball.getPosition(), "goal_red"):
             self.blue_score += 1
+            print("Blue Team Scored")
             return True
-        elif isInside(self.ball.getPosition(), self.boundaries["goal_blue"]):
+        elif self.field.isInside(self.ball.getPosition(), "goal_blue"):
             self.red_score += 1
+            print("Red Team Scored")
             return True
         else:
             return False
 
     def ball_out(self):
-        return not isInside(self.ball.getPosition(), self.boundaries["field"])
+        return not self.field.isInside(self.ball.getPosition(), "field")
 
     def get_time(self):
         self.time_passed = time.time() - self.start_game_time_seconds
@@ -128,15 +131,6 @@ class SimController(Supervisor):
 
     def end_simulation(self):
         print("Sim ended")
-
-
-def isInside(pos, boundary):
-    return (
-        pos.x > boundary[0].x
-        and pos.x < boundary[1].x
-        and pos.y < boundary[0].y
-        and pos.y > boundary[1].y
-    )
 
 
 if __name__ == "__main__":
