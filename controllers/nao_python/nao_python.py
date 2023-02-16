@@ -1,6 +1,7 @@
 from controller import Robot, Keyboard, Motion
 import math
 import numpy as np
+from scipy import interpolate
 
 
 class Nao(Robot):
@@ -15,6 +16,7 @@ class Nao(Robot):
         self.loadMotionFiles()
 
         self.walk_speed = 0.12
+        self.smoothing = 0.8
 
         self.handWave.setLoop(False)
         self.handWave.play()
@@ -27,6 +29,7 @@ class Nao(Robot):
         self.stride = [0, 0, 0, 0]
         self.new_stride = [0, 0, 0, 0]
         self.old_stride = []
+        self.l, self.r = np.array([0.18, 0, 0, 0]), np.array([0.18, 0, 0, 0])
 
     def run(self):
         while robot.step(self.timeStep) != -1:
@@ -74,34 +77,35 @@ class Nao(Robot):
             self.new_stride = [0, 0, 0, 0]
 
         if self.start_t < self.t < self.end_t:
-            self.moveLegs(
-                map_range(
-                    self.t,
-                    self.start_t,
-                    self.end_t,
-                    np.array(self.motion[self.idx - 1][0]),
-                    np.array(self.motion[self.idx][0]),
-                ),
-                map_range(
-                    self.t,
-                    self.start_t,
-                    self.end_t,
-                    np.array(self.motion[self.idx - 1][1]),
-                    np.array(self.motion[self.idx][1]),
-                ),
+            t = [self.start_t, self.end_t]
+            mot_l = np.array([self.motion[self.idx - 1][0], self.motion[self.idx][0]]).T
+            mot_r = np.array([self.motion[self.idx - 1][1], self.motion[self.idx][1]]).T
+
+            self.old_l = self.l
+            self.old_r = self.r
+            self.interp_l = interpolate.interp1d(t, np.array(mot_l), "linear")
+            self.interp_r = interpolate.interp1d(t, np.array(mot_r), "linear")
+
+            self.l = self.old_l * self.smoothing + self.interp_l(self.t) * (
+                1 - self.smoothing
             )
+            self.r = self.old_r * self.smoothing + self.interp_r(self.t) * (
+                1 - self.smoothing
+            )
+
+            self.moveLegs(self.l, self.r)
 
     def receiveMessage(self):
         if self.receiver.getQueueLength() > 0:
             a = self.receiver.getFloats()
             self.receiver.nextPacket()
             self.old_stride = self.new_stride
-            self.new_stride = [0.04 * a[0], 0.075 * a[1], 0.5 * a[2]]
+            self.new_stride = [0.08 * a[0], 0.12 * a[1], 0.5 * a[2]]
 
     def updateStride(self):
         strd = self.stride
-        cnstd_l = constrain(strd[0], -0.05, 0)
-        cnstd_r = constrain(strd[0], 0, 0.05)
+        cnstd_l = constrain(strd[0], -1, 0)
+        cnstd_r = constrain(strd[0], 0, 1)
         self.motion = [
             ((0.14, strd[1], cnstd_l, -strd[2]), (0.16, 0, -0.05, strd[2])),
             ((0.16, strd[1], cnstd_l, -strd[2]), (0.16, 0, -0.05, 0)),
