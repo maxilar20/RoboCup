@@ -53,6 +53,9 @@ class Nao(Robot):
         elif self.message[3] == 1:
             self.new_state = "kicking"
             self.state_done = False
+        elif self.message[3] == 2:
+            self.new_state = "standing"
+            self.state_done = False
 
         if self.state == "walking":
             print("Walking")
@@ -60,9 +63,10 @@ class Nao(Robot):
             self.walk()
         elif self.state == "kicking":
             print("Kicking")
-
             self.smoothing = 0
             self.kick()
+        elif self.state == "standing":
+            print("Standing")
 
         if self.state_done:
             self.old_state = self.state
@@ -188,20 +192,13 @@ class Nao(Robot):
                 ((0.16, 0, 0, 0), (0.16, 0, 0, 0)),
                 ((0.16, 0, 0.05, 0), (0.16, 0, 0, 0)),
                 ((0.16, 0, 0.05, 0), (0.12, 0, 0, 0)),
-                ((0.16, 0, 0.05, 0), (0.12, 0.1, 0, 0)),
+                ((0.16, 0, 0.05, 0), (0.12, 0.15, 0, 0)),
                 ((0.16, 0, 0.05, 0), (0.12, 0, 0, 0)),
                 ((0.16, 0, 0.05, 0), (0.12, 0, 0, 0)),
             ]
 
     def loadMotionFiles(self):
         self.handWave = Motion("./motions/HandWave.motion")
-        self.forwards = Motion("./motions/Forwards.motion")
-        self.backwards = Motion("./motions/Backwards.motion")
-        self.sideStepLeft = Motion("./motions/SideStepLeft.motion")
-        self.sideStepRight = Motion("./motions/SideStepRight.motion")
-        self.turnLeft = Motion("./motions/TurnLeft40.motion")
-        self.turnRight = Motion("./motions/TurnRight40.motion")
-        self.shoot = Motion("./motions/Shoot.motion")
 
     def startMotion(self, motion):
         if self.currentlyPlaying:

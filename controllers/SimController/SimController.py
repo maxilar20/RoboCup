@@ -115,6 +115,9 @@ class SimController(Supervisor):
         if keys[pygame.K_SPACE]:
             message[3] = 1
 
+        if keys[pygame.K_r]:
+            message[3] = 2
+
         self.emitter.send(message)
 
     def reset_simulation(self):
