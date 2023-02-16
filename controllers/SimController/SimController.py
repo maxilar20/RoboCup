@@ -1,10 +1,5 @@
 from controller import Supervisor
-from Objects.Player import *
-from Objects.Ball import *
-from Objects.Field import *
-from Objects.Button import *
-from Objects.GUI import *
-from Objects.CONFIG import *
+from objects import *
 import time
 
 

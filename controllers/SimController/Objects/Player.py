@@ -1,6 +1,7 @@
-from Objects.Entity import *
+from .entity import *
 import pygame
 import math as mt
+import numpy as np
 
 
 class Player(Entity):
