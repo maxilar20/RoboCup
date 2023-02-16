@@ -30,14 +30,38 @@ class Nao(Robot):
         self.t = 0
         self.start_t = self.t
         self.end_t = self.start_t + 1
-        self.current_stride = [0.0, 0.0, 0.0, 0.0]
-        self.new_stride = [0.0, 0.0, 0.0, 0.0]
+        self.current_stride = [0.0, 0.0, 0.0]
+        self.new_stride = [0.0, 0.0, 0.0]
         self.l, self.r = np.array([0.18, 0, 0, 0]), np.array([0.18, 0, 0, 0])
 
         self.updateStride()
 
     def run(self):
-        self.receiveMessage()
+        self.t += self.timeStep / 1000
+
+        self.message = self.receiveMessage()
+
+        if not self.message:
+            return
+
+        if self.message[3] == 0:
+            self.state = "walking"
+        elif self.message[3] == 1:
+            self.state = "kicking"
+
+        if self.state == "walking":
+            print("Walking")
+            self.walk()
+        elif self.state == "kicking":
+            print("Kicking")
+
+    def walk(self):
+        self.old_stride = self.new_stride
+        self.new_stride = [
+            0.08 * self.message[0],
+            0.12 * self.message[1],
+            0.75 * self.message[2],
+        ]
 
         if self.t > self.end_t:
             self.start_t = self.t
@@ -52,15 +76,13 @@ class Nao(Robot):
                 self.current_stride = self.new_stride
                 self.updateStride()
 
-            self.new_stride = [0.0, 0.0, 0.0, 0.0]
+            self.new_stride = [0.0, 0.0, 0.0]
             stride_distance = np.linalg.norm(self.current_stride[:1])
             self.stride_time = max((stride_distance / self.walk_speed), 0.1)
 
         if self.start_t < self.t < self.end_t:
             inverse_kinematics = self.inverseKinematics()
             self.moveLegs(inverse_kinematics)
-
-        self.t += self.timeStep / 1000
 
     def moveLegs(self, inverse_kineamtics):
         prefixes = ["L", "R"]
@@ -104,10 +126,9 @@ class Nao(Robot):
 
     def receiveMessage(self):
         if self.receiver.getQueueLength() > 0:
-            a = self.receiver.getFloats()
+            message = self.receiver.getFloats()
             self.receiver.nextPacket()
-            self.old_stride = self.new_stride
-            self.new_stride = [0.08 * a[0], 0.12 * a[1], 0.75 * a[2], 0.0]
+            return message
 
     def updateStride(self):
         strd = self.current_stride
