@@ -5,19 +5,12 @@ from scipy import interpolate
 
 
 class Nao(Robot):
-    PHALANX_MAX = 8
-
     def __init__(self):
         Robot.__init__(self)
 
         # initialize stuff
         self.timeStep = int(self.getBasicTimeStep())
         self.findAndEnableDevices()
-
-        # Animate handwave
-        self.handWave = Motion("./motions/HandWave.motion")
-        self.handWave.setLoop(False)
-        self.handWave.play()
 
         # Walking parameters
         self.walk_speed = 1
@@ -28,7 +21,7 @@ class Nao(Robot):
         self.idx = 0
         self.t = 0
         self.start_t = self.t
-        self.end_t = self.start_t + 1
+        self.end_t = self.start_t + self.stride_time
         self.current_stride = [0.0, 0.0, 0.0]
         self.new_stride = [0.0, 0.0, 0.0]
         self.l, self.r = np.array([0.18, 0, 0, 0]), np.array([0.18, 0, 0, 0])
@@ -36,7 +29,10 @@ class Nao(Robot):
         self.state = "walking"
         self.old_state = self.state
 
-        self.updateStride("walk")
+        # Animate handwave
+        self.handWave = Motion("./motions/HandWave.motion")
+        self.handWave.setLoop(False)
+        self.handWave.play()
 
     def run(self):
         self.t += self.timeStep / 1000
