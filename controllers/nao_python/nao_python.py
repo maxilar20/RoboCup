@@ -35,8 +35,9 @@ class Nao(Robot):
         self.l, self.r = np.array([0.18, 0, 0, 0]), np.array([0.18, 0, 0, 0])
 
         self.state = "walking"
+        self.old_state = self.state
 
-        self.updateStride()
+        self.updateStride("walk")
 
     def run(self):
         self.t += self.timeStep / 1000
@@ -55,16 +56,39 @@ class Nao(Robot):
 
         if self.state == "walking":
             print("Walking")
+            self.smoothing = 0.8
             self.walk()
         elif self.state == "kicking":
             print("Kicking")
+
+            self.smoothing = 0
             self.kick()
 
         if self.state_done:
+            self.old_state = self.state
             self.state = self.new_state
-            print("done")
+            if self.old_state != self.state:
+                self.idx = 0
+
+    def kick(self):
+        self.updateStride("kick")
+
+        if self.idx > len(self.motion) - 1:
+            self.state_done = True
+            return
+
+        if self.t > self.end_t:
+            self.start_t = self.t
+            self.end_t = self.start_t + self.stride_time
+            self.idx += 1
+
+        if self.start_t < self.t < self.end_t:
+            inverse_kinematics = self.inverseKinematics()
+            self.moveLegs(inverse_kinematics)
 
     def walk(self):
+        self.updateStride("walk")
+
         self.old_stride = self.new_stride
         self.new_stride = [
             0.08 * self.message[0],
@@ -84,7 +108,6 @@ class Nao(Robot):
             self.state_done = True
             if self.current_stride != self.new_stride:
                 self.current_stride = self.new_stride
-                self.updateStride()
 
             self.new_stride = [0.0, 0.0, 0.0]
             stride_distance = np.linalg.norm(self.current_stride[:1])
@@ -140,24 +163,35 @@ class Nao(Robot):
             self.receiver.nextPacket()
             return message
 
-    def updateStride(self):
-        strd = self.current_stride
+    def updateStride(self, action):
+        if action == "walk":
+            strd = self.current_stride
 
-        cnstd_l = min(strd[0], 0)
-        cnstd_r = max(strd[0], 0)
+            cnstd_l = min(strd[0], 0)
+            cnstd_r = max(strd[0], 0)
 
-        self.motion = [
-            ((0.14, strd[1], cnstd_l, -strd[2]), (0.16, 0, -0.05, strd[2])),
-            ((0.16, strd[1], cnstd_l, -strd[2]), (0.16, 0, -0.05, 0)),
-            ((0.16, 0, 0.05, -strd[2]), (0.16, -strd[1], -cnstd_l, 0)),
-            ((0.16, 0, 0.05, -strd[2]), (0.14, -strd[1], -cnstd_l, strd[2])),
-            ((0.16, 0, 0.05, 0), (0.14, 0, 0, strd[2])),
-            ((0.16, 0, 0.05, 0), (0.14, strd[1], cnstd_r, strd[2])),
-            ((0.16, 0, 0.05, 0), (0.16, strd[1], cnstd_r, strd[2])),
-            ((0.16, -strd[1], -cnstd_r, 0), (0.16, 0, -0.05, strd[2])),
-            ((0.14, -strd[1], -cnstd_r, -strd[2]), (0.16, 0, -0.05, 0)),
-            ((0.14, 0, 0, -strd[2]), (0.16, 0, -0.05, 0)),
-        ]
+            self.motion = [
+                ((0.14, strd[1], cnstd_l, -strd[2]), (0.16, 0, -0.05, strd[2])),
+                ((0.16, strd[1], cnstd_l, -strd[2]), (0.16, 0, -0.05, 0)),
+                ((0.16, 0, 0.05, -strd[2]), (0.16, -strd[1], -cnstd_l, 0)),
+                ((0.16, 0, 0.05, -strd[2]), (0.14, -strd[1], -cnstd_l, strd[2])),
+                ((0.16, 0, 0.05, 0), (0.14, 0, 0, strd[2])),
+                ((0.16, 0, 0.05, 0), (0.14, strd[1], cnstd_r, strd[2])),
+                ((0.16, 0, 0.05, 0), (0.16, strd[1], cnstd_r, strd[2])),
+                ((0.16, -strd[1], -cnstd_r, 0), (0.16, 0, -0.05, strd[2])),
+                ((0.14, -strd[1], -cnstd_r, -strd[2]), (0.16, 0, -0.05, 0)),
+                ((0.14, 0, 0, -strd[2]), (0.16, 0, -0.05, 0)),
+            ]
+
+        elif action == "kick":
+            self.motion = [
+                ((0.16, 0, 0, 0), (0.16, 0, 0, 0)),
+                ((0.16, 0, 0.05, 0), (0.16, 0, 0, 0)),
+                ((0.16, 0, 0.05, 0), (0.12, 0, 0, 0)),
+                ((0.16, 0, 0.05, 0), (0.12, 0.1, 0, 0)),
+                ((0.16, 0, 0.05, 0), (0.12, 0, 0, 0)),
+                ((0.16, 0, 0.05, 0), (0.12, 0, 0, 0)),
+            ]
 
     def loadMotionFiles(self):
         self.handWave = Motion("./motions/HandWave.motion")
