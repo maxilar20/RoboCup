@@ -90,7 +90,7 @@ class SimController(Supervisor):
         self.GUI.flip()
 
     def moveRobot(self, channel=0):
-        message = [0.0, 0.0, 0.0]
+        message = [0.0, 0.0, 0.0, 0.0]
 
         keys = pygame.key.get_pressed()
 

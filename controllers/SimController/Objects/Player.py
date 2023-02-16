@@ -47,7 +47,7 @@ class Player(Entity):
         )
 
         self.max_sensor_dist = 1
-        self.sensor_angles = np.linspace(0, 2 * 3.14, 20)[:-1]
+        self.sensor_angles = np.linspace(0, 2 * 3.14, 40)[:-1]
         self.possible_distances = np.linspace(0, self.max_sensor_dist, 10)
         self.distances = np.zeros(self.sensor_angles.size)
 

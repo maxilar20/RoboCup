@@ -30,18 +30,33 @@ class Nao(Robot):
         self.t = 0
         self.start_t = self.t
         self.end_t = self.start_t + 1
-        self.stride = [0, 0, 0, 0]
-        self.new_stride = [0, 0, 0, 0]
-        self.old_stride = []
+        self.current_stride = [0.0, 0.0, 0.0, 0.0]
+        self.new_stride = [0.0, 0.0, 0.0, 0.0]
         self.l, self.r = np.array([0.18, 0, 0, 0]), np.array([0.18, 0, 0, 0])
+
+        self.updateStride()
 
     def run(self):
         while robot.step(self.timeStep) != -1:
 
             self.receiveMessage()
 
-            if self.old_stride != self.new_stride:
-                self.updateStride()
+            if self.t > self.end_t:
+                self.start_t = self.t
+                self.end_t = self.start_t + self.stride_time
+                self.idx += 1
+
+            if self.idx > len(self.motion) - 1:
+                self.idx = 0
+
+            if self.idx in [1, 5]:
+                if self.current_stride != self.new_stride:
+                    self.current_stride = self.new_stride
+                    self.updateStride()
+
+                self.new_stride = [0.0, 0.0, 0.0, 0.0]
+                stride_distance = np.linalg.norm(self.current_stride[:1])
+                self.stride_time = max((stride_distance / self.walk_speed), 0.1)
 
             self.walk()
 
@@ -70,21 +85,6 @@ class Nao(Robot):
         self.legJoints[prefix + "HipYawPitch"]["joint"].setPosition(pos[3])
 
     def walk(self):
-
-        if self.t > self.end_t:
-            self.start_t = self.t
-            self.end_t = self.start_t + self.stride_time
-            self.idx += 1
-
-        if self.idx > len(self.motion) - 1:
-            self.idx = 0
-
-        if self.idx in [1, 5]:
-            self.stride = self.new_stride
-            self.new_stride = [0, 0, 0, 0]
-            stride_distance = np.linalg.norm((self.stride[0], self.stride[1]))
-            self.stride_time = constrain((stride_distance / self.walk_speed), 0.1, 0.2)
-
         if self.start_t < self.t < self.end_t:
             t = [self.start_t, self.end_t]
             mot_l = np.array([self.motion[self.idx - 1][0], self.motion[self.idx][0]]).T
@@ -109,10 +109,10 @@ class Nao(Robot):
             a = self.receiver.getFloats()
             self.receiver.nextPacket()
             self.old_stride = self.new_stride
-            self.new_stride = [0.08 * a[0], 0.12 * a[1], 0.5 * a[2]]
+            self.new_stride = [0.08 * a[0], 0.12 * a[1], 0.75 * a[2], 0.0]
 
     def updateStride(self):
-        strd = self.stride
+        strd = self.current_stride
         cnstd_l = constrain(strd[0], -1, 0)
         cnstd_r = constrain(strd[0], 0, 1)
         self.motion = [
