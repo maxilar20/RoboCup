@@ -6,7 +6,7 @@ from ctypes import wintypes
 
 
 class GUI:
-    def __init__(self, window_size=math.Vector2((334, 230))):
+    def __init__(self, window_size=(334, 230)):
 
         pygame.init()
 

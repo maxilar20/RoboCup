@@ -55,21 +55,20 @@ class Nao(Robot):
 
         # State Machine
         if self.state == "walking":
-            print("Walking")
-
             self.walk_speed = 1
             self.smoothing = 0.8
             self.walk()
 
         elif self.state == "kicking":
-            print("Kicking")
-
             self.walk_speed = 1
             self.smoothing = 0
             self.kick()
 
         elif self.state == "standing":
-            print("Standing")
+            pass
+
+        # TODO: add jumping
+        # TODO: add standing up
 
         # Change of state
         if self.state_done:
