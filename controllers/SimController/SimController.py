@@ -1,5 +1,9 @@
 from controller import Supervisor
-from objects import *
+from objects import Player, Ball, Field, GUI, Button
+from .config import GAME_TIME, player_definitions, boundaries
+
+import pygame
+
 import time
 
 
@@ -36,7 +40,7 @@ class SimController(Supervisor):
         ]
 
     def run(self):
-        ###################### SIMULATION ######################
+        # SIMULATION
         simcontroller.get_time()
 
         if simcontroller.time_up():
@@ -51,7 +55,7 @@ class SimController(Supervisor):
 
         # TODO: Check if there's been a fault
 
-        ######################   Update  ######################
+        # Update
 
         for player in self.players:
             player.getPosition()
@@ -59,7 +63,7 @@ class SimController(Supervisor):
         for player in self.players:
             player.senseDistances(self.field, self.players)
 
-        ######################   Run  ######################
+        # Run
 
         # for player in self.players:
         #     player.act()
@@ -67,7 +71,7 @@ class SimController(Supervisor):
 
         self.moveRobot()
 
-        ######################   GUI  ######################
+        # GUI
         self.GUI.run()
 
         self.field.show()
