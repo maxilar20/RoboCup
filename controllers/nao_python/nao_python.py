@@ -15,7 +15,8 @@ class Nao(Robot):
         self.findAndEnableDevices()
         self.loadMotionFiles()
 
-        self.walk_speed = 0.12
+        self.walk_speed = 1
+        self.stride_time = 0.12
         self.smoothing = 0.8
 
         self.handWave.setLoop(False)
@@ -66,7 +67,7 @@ class Nao(Robot):
 
         if self.t > self.end_t:
             self.start_t = self.t
-            self.end_t = self.start_t + self.walk_speed
+            self.end_t = self.start_t + self.stride_time
             self.idx += 1
 
         if self.idx > len(self.motion) - 1:
@@ -75,6 +76,8 @@ class Nao(Robot):
         if self.idx in [1, 5]:
             self.stride = self.new_stride
             self.new_stride = [0, 0, 0, 0]
+            stride_distance = np.linalg.norm((self.stride[0], self.stride[1]))
+            self.stride_time = constrain((stride_distance / self.walk_speed), 0.1, 0.2)
 
         if self.start_t < self.t < self.end_t:
             t = [self.start_t, self.end_t]
