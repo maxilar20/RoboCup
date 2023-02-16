@@ -34,6 +34,8 @@ class Nao(Robot):
         self.new_stride = [0.0, 0.0, 0.0]
         self.l, self.r = np.array([0.18, 0, 0, 0]), np.array([0.18, 0, 0, 0])
 
+        self.state = "walking"
+
         self.updateStride()
 
     def run(self):
@@ -45,15 +47,22 @@ class Nao(Robot):
             return
 
         if self.message[3] == 0:
-            self.state = "walking"
+            self.new_state = "walking"
+            self.state_done = False
         elif self.message[3] == 1:
-            self.state = "kicking"
+            self.new_state = "kicking"
+            self.state_done = False
 
         if self.state == "walking":
             print("Walking")
             self.walk()
         elif self.state == "kicking":
             print("Kicking")
+            self.kick()
+
+        if self.state_done:
+            self.state = self.new_state
+            print("done")
 
     def walk(self):
         self.old_stride = self.new_stride
@@ -72,6 +81,7 @@ class Nao(Robot):
             self.idx = 0
 
         if self.idx in [1, 5]:
+            self.state_done = True
             if self.current_stride != self.new_stride:
                 self.current_stride = self.new_stride
                 self.updateStride()
