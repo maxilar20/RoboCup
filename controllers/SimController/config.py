@@ -3,7 +3,7 @@ from pygame import math
 GAME_TIME = 15  # minutes
 
 
-player_definitions = [
+PLAYERS_DEF = [
     {
         "player": "1",
         "team": "red",
@@ -62,7 +62,7 @@ player_definitions = [
     },
 ]
 
-boundaries = {
+BOUNDARIES = {
     "goal_red": (math.Vector2(-5, 0.7), math.Vector2(-4.5, -0.7)),
     "goal_blue": (math.Vector2(4.5, 0.7), math.Vector2(5, -0.7)),
     "field": (math.Vector2(-4.5, 3), math.Vector2(4.5, -3)),

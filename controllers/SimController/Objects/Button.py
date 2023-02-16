@@ -2,9 +2,8 @@ import pygame
 
 
 class Button(pygame.sprite.Sprite):
-    def __init__(self, screen, position, text, size, colors="white on blue"):
+    def __init__(self, position, text, size, colors="white on blue"):
         super().__init__()
-        self.screen = screen
         self.text = text
         self.colors = colors
         self.fg, self.bg = self.colors.split(" on ")
@@ -22,34 +21,6 @@ class Button(pygame.sprite.Sprite):
         self.update()
 
     def update(self):
-        self.fg, self.bg = self.colors.split(" on ")
-        pygame.draw.line(
-            self.screen, (150, 150, 150), (self.x, self.y), (self.x + self.w, self.y), 5
-        )
-        pygame.draw.line(
-            self.screen,
-            (150, 150, 150),
-            (self.x, self.y - 2),
-            (self.x, self.y + self.h),
-            5,
-        )
-        pygame.draw.line(
-            self.screen,
-            (50, 50, 50),
-            (self.x, self.y + self.h),
-            (self.x + self.w, self.y + self.h),
-            5,
-        )
-        pygame.draw.line(
-            self.screen,
-            (50, 50, 50),
-            (self.x + self.w, self.y + self.h),
-            [self.x + self.w, self.y],
-            5,
-        )
-        pygame.draw.rect(self.screen, self.bg, (self.x, self.y, self.w, self.h))
-        self.screen.blit(self.text_render, self.position)
-
         if self.rect.collidepoint(pygame.mouse.get_pos()):
             self.colors = "red on cyan"
         else:

@@ -33,25 +33,178 @@ class GUI:
 
         self.font = pygame.font.Font("freesansbold.ttf", 20)
 
-    def run(self):
-        self.screen.fill((0, 120, 0))
-
+    def show(self, debug, time_passed, scores, field, ball, players, buttons):
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 running = False
 
-    def flip(self):
-        # Flip the display
+        self.screen.fill((0, 120, 0))
+
+        self.showField(field)
+        self.showBall(ball)
+        for player in players:
+            self.showPlayer(player)
+            if debug:
+                self.showSensors(player)
+        for button in buttons:
+            self.showButton(button)
+
+        self.drawText(time_passed, scores)
+
         pygame.display.flip()
 
-    def drawText(self, time_passed, red_score, blue_score):
-        score_text = f"Red {red_score} | {blue_score} Blue      "
+    def showButton(self, button):
+        button.fg, button.bg = button.colors.split(" on ")
+        pygame.draw.line(
+            self.screen,
+            (150, 150, 150),
+            (button.x, button.y),
+            (button.x + button.w, button.y),
+            5,
+        )
+        pygame.draw.line(
+            self.screen,
+            (150, 150, 150),
+            (button.x, button.y - 2),
+            (button.x, button.y + button.h),
+            5,
+        )
+        pygame.draw.line(
+            self.screen,
+            (50, 50, 50),
+            (button.x, button.y + button.h),
+            (button.x + button.w, button.y + button.h),
+            5,
+        )
+        pygame.draw.line(
+            self.screen,
+            (50, 50, 50),
+            (button.x + button.w, button.y + button.h),
+            [button.x + button.w, button.y],
+            5,
+        )
+        pygame.draw.rect(
+            self.screen, button.bg, (button.x, button.y, button.w, button.h)
+        )
+        self.screen.blit(button.text_render, button.position)
+
+    def drawText(self, time_passed, scores):
+        score_text = f"Red {scores[0]} | {scores[1]} Blue      "
         text = self.font.render(
             score_text + time_passed, True, (0, 0, 0), (255, 255, 255)
         )
         textRect = text.get_rect()
         textRect.midbottom = (self.window_size[0] / 2, self.window_size[1])
         self.screen.blit(text, textRect)
+
+    def showBall(self, ball):
+        color = (255, 255, 255)
+        pygame.draw.circle(
+            self.screen,
+            color,
+            self.mapToGUI(ball.getPosition()),
+            self.scaleToGUI(ball.circle_radius),
+        )
+
+    def showField(self, field):
+        for boundary in field.boundaries.values():
+            # Field lines
+            pygame.draw.rect(
+                self.screen,
+                (255, 255, 255),
+                pygame.Rect(
+                    self.mapToGUI(boundary[0]),
+                    self.mapToGUI(boundary[1]) - self.mapToGUI(boundary[0]),
+                ),
+                2,
+            )
+
+        # Middle line
+        pygame.draw.lines(
+            self.screen,
+            (255, 255, 255),
+            True,
+            [
+                self.mapToGUI((0, -3)),
+                self.mapToGUI((0, 3)),
+            ],
+            2,
+        )
+
+        # Field circle line
+        pygame.draw.circle(
+            self.screen,
+            (255, 255, 255),
+            self.mapToGUI((0, 0)),
+            self.scaleToGUI(0.85),
+            2,
+        )
+
+    def showPlayer(self, player):
+        pygame.draw.circle(
+            self.screen,
+            player.color,
+            self.mapToGUI(player.position),
+            self.scaleToGUI(player.circle_radius),
+        )
+        pygame.draw.circle(
+            self.screen,
+            (0, 255, 0),
+            self.mapToGUI(
+                player.position
+                + 0.9
+                * np.array(
+                    (
+                        player.circle_radius * np.cos(player.getOrientation() + 1),
+                        player.circle_radius * np.sin(player.getOrientation() + 1),
+                    )
+                ),
+            ),
+            self.scaleToGUI(player.circle_radius) * 0.5,
+        )
+        pygame.draw.circle(
+            self.screen,
+            (0, 255, 0),
+            self.mapToGUI(
+                player.position
+                + 0.9
+                * np.array(
+                    (
+                        player.circle_radius * np.cos(player.getOrientation() - 1),
+                        player.circle_radius * np.sin(player.getOrientation() - 1),
+                    )
+                ),
+            ),
+            self.scaleToGUI(player.circle_radius) * 0.5,
+        )
+
+    def showSensors(self, player):
+        orientation = player.getOrientation()
+        for angle, distance in zip(player.sensor_angles, player.distances):
+            sensor_dir = angle + orientation
+            dir_vector = np.array((np.cos(sensor_dir), np.sin(sensor_dir)))
+            pygame.draw.lines(
+                self.screen,
+                (255, 255, 255),
+                True,
+                [
+                    self.mapToGUI(player.position),
+                    self.mapToGUI(player.position + distance * dir_vector),
+                ],
+                1,
+            )
+
+        dir_vector = player.move_vector.rotate_rad(orientation)
+        pygame.draw.lines(
+            self.screen,
+            (255, 0, 0),
+            True,
+            [
+                self.mapToGUI(player.position),
+                self.mapToGUI(player.position + dir_vector),
+            ],
+            1,
+        )
 
     def mapToGUI(self, pos):
         return math.Vector2(
