@@ -68,9 +68,9 @@ class SimController(Supervisor):
 
         # for player in self.players:
         #     player.act()
-        self.players[0].act()
+        # self.players[0].act()
 
-        # self.moveRobot()
+        self.moveRobot()
 
         ######################   GUI  ######################
         self.GUI.run()
