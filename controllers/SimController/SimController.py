@@ -1,20 +1,15 @@
 from controller import Supervisor
-from objects import *
+from objects import Player, Ball, Field, GUI, Button
+from config import GAME_TIME, PLAYERS_DEF, BOUNDARIES
+
+import pygame
+
 import time
 
 
 class SimController(Supervisor):
-    def __init__(self, boundaries, max_game_time_mins=15):
+    def __init__(self, BOUNDARIES, max_game_time_mins=15):
         super().__init__()
-
-        self.boundaries = boundaries
-
-        self.GUI = GUI()
-
-        self.field = Field(boundaries, self.GUI)
-
-        self.debug = False
-        self.button1 = Button(self.GUI.screen, (10, 10), "Debug", 20, "black on white")
 
         self.start_game_time_seconds = time.time()
         self.max_game_time_secs = max_game_time_mins * 60
@@ -22,21 +17,28 @@ class SimController(Supervisor):
         self.red_score = 0
         self.blue_score = 0
 
-        self.keyboard = self.getKeyboard()
         self.timeStep = int(self.getBasicTimeStep())
-        self.keyboard.enable(10 * self.timeStep)
 
         self.emitter = self.getDevice("emitter")
 
-        self.ball = Ball(self, self.GUI)
+        self.GUI = GUI()
+
+        self.BOUNDARIES = BOUNDARIES
+        self.field = Field(BOUNDARIES)
+
+        self.debug = False
+        self.debug_button = Button((10, 10), "Debug", 20, "black on white")
+        self.buttons = [self.debug_button]
+
+        self.ball = Ball(self)
 
         self.players = [
-            Player(self, **player, GUI=self.GUI, emitter=self.emitter, ball=self.ball)
-            for player in player_definitions
+            Player(self, **player, emitter=self.emitter, ball=self.ball)
+            for player in PLAYERS_DEF
         ]
 
     def run(self):
-        ###################### SIMULATION ######################
+        # SIMULATION
         simcontroller.get_time()
 
         if simcontroller.time_up():
@@ -51,15 +53,14 @@ class SimController(Supervisor):
 
         # TODO: Check if there's been a fault
 
-        ######################   Update  ######################
-
+        # Update
         for player in self.players:
             player.getPosition()
 
         for player in self.players:
             player.senseDistances(self.field, self.players)
 
-        ######################   Run  ######################
+        # Run
 
         # for player in self.players:
         #     player.act()
@@ -67,22 +68,18 @@ class SimController(Supervisor):
 
         self.moveRobot()
 
-        ######################   GUI  ######################
-        self.GUI.run()
-
-        self.field.show()
-
-        for player in self.players:
-            player.showPlayer()
-            if self.debug:
-                player.showSensors()
-
-        self.ball.show()
-
-        self.debug = self.button1.update()
-        self.GUI.drawText(self.time_passed_text, self.red_score, self.blue_score)
-
-        self.GUI.flip()
+        # GUI
+        self.debug = self.debug_button.update()
+        scores = (self.red_score, self.blue_score)
+        self.GUI.show(
+            self.debug,
+            self.time_passed_text,
+            scores,
+            self.field,
+            self.ball,
+            self.players,
+            self.buttons,
+        )
 
     def moveRobot(self, channel=0):
         message = [0.0, 0.0, 0.0, 0.0]
@@ -148,7 +145,7 @@ class SimController(Supervisor):
 
 if __name__ == "__main__":
 
-    simcontroller = SimController(boundaries, max_game_time_mins=GAME_TIME)
+    simcontroller = SimController(BOUNDARIES, max_game_time_mins=GAME_TIME)
 
     TIME_STEP = 32
     while simcontroller.step(TIME_STEP) != -1:

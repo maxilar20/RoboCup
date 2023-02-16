@@ -1,24 +1,14 @@
-from .entity import *
-import pygame
+from .entity import Entity
+from pygame import math
 import math as mt
 import numpy as np
 
 
 class Player(Entity):
     def __init__(
-        self,
-        robot,
-        player,
-        team,
-        player_position,
-        translation,
-        channel,
-        GUI,
-        emitter,
-        ball,
+        self, robot, player, team, player_position, translation, channel, emitter, ball
     ):
 
-        self.GUI = GUI
         self.emitter = emitter
         self.ball = ball
 
@@ -113,69 +103,3 @@ class Player(Entity):
         ang = angle - mt.radians(difference.as_polar()[1])
 
         return math.Vector2((np.cos(ang), -np.sin(ang)))
-
-    def showPlayer(self):
-        pygame.draw.circle(
-            self.GUI.screen,
-            tuple(self.color),
-            self.GUI.mapToGUI(self.position),
-            self.GUI.scaleToGUI(self.circle_radius),
-        )
-        pygame.draw.circle(
-            self.GUI.screen,
-            (0, 255, 0),
-            self.GUI.mapToGUI(
-                self.position
-                + 0.9
-                * np.array(
-                    (
-                        self.circle_radius * np.cos(self.getOrientation() + 1),
-                        self.circle_radius * np.sin(self.getOrientation() + 1),
-                    )
-                ),
-            ),
-            self.GUI.scaleToGUI(self.circle_radius) * 0.5,
-        )
-        pygame.draw.circle(
-            self.GUI.screen,
-            (0, 255, 0),
-            self.GUI.mapToGUI(
-                self.position
-                + 0.9
-                * np.array(
-                    (
-                        self.circle_radius * np.cos(self.getOrientation() - 1),
-                        self.circle_radius * np.sin(self.getOrientation() - 1),
-                    )
-                ),
-            ),
-            self.GUI.scaleToGUI(self.circle_radius) * 0.5,
-        )
-
-    def showSensors(self):
-        orientation = self.getOrientation()
-        for angle, distance in zip(self.sensor_angles, self.distances):
-            sensor_dir = angle + orientation
-            dir_vector = np.array((np.cos(sensor_dir), np.sin(sensor_dir)))
-            pygame.draw.lines(
-                self.GUI.screen,
-                (255, 255, 255),
-                True,
-                [
-                    self.GUI.mapToGUI(self.position),
-                    self.GUI.mapToGUI(self.position + distance * dir_vector),
-                ],
-                1,
-            )
-
-        dir_vector = self.move_vector.rotate_rad(orientation)
-        pygame.draw.lines(
-            self.GUI.screen,
-            (255, 0, 0),
-            True,
-            [
-                self.GUI.mapToGUI(self.position),
-                self.GUI.mapToGUI(self.position + dir_vector),
-            ],
-            1,
-        )
