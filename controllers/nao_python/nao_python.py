@@ -15,13 +15,13 @@ class Nao(Robot):
         self.findAndEnableDevices()
         self.loadMotionFiles()
 
-        self.walk_speed = 1
-        self.stride_time = 0.12
-        self.smoothing = 0.8
-
         self.handWave.setLoop(False)
         self.handWave.play()
         self.currentlyPlaying = self.handWave
+
+        self.walk_speed = 1
+        self.stride_time = 0.12
+        self.smoothing = 0.8
 
         self.idx = 0
         self.t = 0
