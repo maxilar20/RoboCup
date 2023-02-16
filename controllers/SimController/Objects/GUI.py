@@ -6,7 +6,7 @@ from ctypes import wintypes
 
 
 class GUI:
-    def __init__(self, window_size=(334, 230)):
+    def __init__(self, window_size=(2 * 334, 2 * 230)):
 
         pygame.init()
 
@@ -51,6 +51,7 @@ class GUI:
 
         self.drawText(time_passed, scores)
 
+    def flip(self):
         pygame.display.flip()
 
     def showButton(self, button):
@@ -144,14 +145,14 @@ class GUI:
         pygame.draw.circle(
             self.screen,
             player.color,
-            self.mapToGUI(player.position),
+            self.mapToGUI(player.getPosition()),
             self.scaleToGUI(player.circle_radius),
         )
         pygame.draw.circle(
             self.screen,
             (0, 255, 0),
             self.mapToGUI(
-                player.position
+                player.getPosition()
                 + 0.9
                 * np.array(
                     (
@@ -166,7 +167,7 @@ class GUI:
             self.screen,
             (0, 255, 0),
             self.mapToGUI(
-                player.position
+                player.getPosition()
                 + 0.9
                 * np.array(
                     (
@@ -188,8 +189,8 @@ class GUI:
                 (255, 255, 255),
                 True,
                 [
-                    self.mapToGUI(player.position),
-                    self.mapToGUI(player.position + distance * dir_vector),
+                    self.mapToGUI(player.getPosition()),
+                    self.mapToGUI(player.getPosition() + distance * dir_vector),
                 ],
                 1,
             )
@@ -200,8 +201,8 @@ class GUI:
             (255, 0, 0),
             True,
             [
-                self.mapToGUI(player.position),
-                self.mapToGUI(player.position + dir_vector),
+                self.mapToGUI(player.getPosition()),
+                self.mapToGUI(player.getPosition() + dir_vector),
             ],
             1,
         )

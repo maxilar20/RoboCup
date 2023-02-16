@@ -6,11 +6,10 @@ import numpy as np
 
 class Player(Entity):
     def __init__(
-        self, robot, player, team, player_position, translation, channel, emitter, ball
+        self, robot, player, team, player_position, translation, channel, emitter
     ):
 
         self.emitter = emitter
-        self.ball = ball
 
         # Player Attributes
         self.team = team
@@ -46,60 +45,9 @@ class Player(Entity):
 
         self.move_vector = math.Vector2(0)
 
-    def act(self):
+    def act(self, move_vector, rot):
 
-        flee = self.flee().clamp_magnitude(1)
-        pursue = self.pursue(self.ball.getPosition()).normalize()
-
-        self.move_vector = math.Vector2(0.0001)
-
-        self.move_vector += flee
-        self.move_vector += pursue
-
-        self.move_vector = self.move_vector.normalize()
-
-        if (self.move_vector.as_polar()[1]) > 10:
-            rot = -0.5
-        elif (self.move_vector.as_polar()[1]) < -10:
-            rot = 0.5
-        else:
-            rot = 0
-
-        message = [-self.move_vector[1], self.move_vector[0], rot]
+        message = [-move_vector[1], move_vector[0], rot, 0]
 
         self.emitter.setChannel(self.channel)
         self.emitter.send(message)
-
-    def senseDistances(self, field, players):
-        orientation = self.getOrientation()
-        for idx, angle in enumerate(self.sensor_angles):
-            sensor_dir = angle + orientation
-            dir = np.array((np.cos(sensor_dir), np.sin(sensor_dir)))
-            self.distances[idx] = self.senseDistance(field, players, dir)
-
-    def senseDistance(self, field, players, dir):
-        for dist in self.possible_distances:
-            point = self.position + (dist * dir)
-            if not field.isInside(point):
-                return dist
-            for player in players:
-                if player != self and player.isInside(point):
-                    return dist
-        else:
-            return self.max_sensor_dist
-
-    def flee(self):
-        dir_vector = math.Vector2(0.001)
-        for angle, dist in zip(self.sensor_angles, self.distances):
-            dir = math.Vector2((np.cos(angle + 0.2), np.sin(angle + 0.2)))
-            dir_vector += dist * dir
-
-        return dir_vector
-
-    def pursue(self, pos):
-        difference = pos - self.position
-        angle = self.getOrientation()
-
-        ang = angle - mt.radians(difference.as_polar()[1])
-
-        return math.Vector2((np.cos(ang), -np.sin(ang)))

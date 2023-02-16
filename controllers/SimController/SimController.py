@@ -1,5 +1,6 @@
 from controller import Supervisor
 from objects import Player, Ball, Field, GUI, Button
+from coach import Coach
 from config import GAME_TIME, PLAYERS_DEF, BOUNDARIES
 
 import pygame
@@ -33,9 +34,13 @@ class SimController(Supervisor):
         self.ball = Ball(self)
 
         self.players = [
-            Player(self, **player, emitter=self.emitter, ball=self.ball)
-            for player in PLAYERS_DEF
+            Player(self, **player, emitter=self.emitter) for player in PLAYERS_DEF
         ]
+
+        self.red_team = [player for player in self.players if player.team == "red"]
+        self.blue_team = [player for player in self.players if player.team == "blue"]
+        self.red_coach = Coach(self.red_team, self.blue_team, self.field, self.ball)
+        self.blue_coach = Coach(self.blue_team, self.red_team, self.field, self.ball)
 
     def run(self):
         # SIMULATION
@@ -53,20 +58,13 @@ class SimController(Supervisor):
 
         # TODO: Check if there's been a fault
 
-        # Update
-        for player in self.players:
-            player.getPosition()
-
-        for player in self.players:
-            player.senseDistances(self.field, self.players)
-
         # Run
 
         # for player in self.players:
         #     player.act()
         # self.players[0].act()
 
-        self.moveRobot()
+        # self.moveRobot(3)
 
         # GUI
         self.debug = self.debug_button.update()
@@ -80,6 +78,11 @@ class SimController(Supervisor):
             self.players,
             self.buttons,
         )
+
+        # Update
+        self.red_coach.act(self.GUI)
+
+        self.GUI.flip()
 
     def moveRobot(self, channel=0):
         message = [0.0, 0.0, 0.0, 0.0]
@@ -110,6 +113,7 @@ class SimController(Supervisor):
         if keys[pygame.K_r]:
             message[3] = 2
 
+        self.emitter.setChannel(channel)
         self.emitter.send(message)
 
     def reset_simulation(self):
