@@ -15,14 +15,17 @@ class Nao(Robot):
         self.findAndEnableDevices()
         self.loadMotionFiles()
 
+        # Animate handwave
         self.handWave.setLoop(False)
         self.handWave.play()
         self.currentlyPlaying = self.handWave
 
+        # Walking parameters
         self.walk_speed = 1
         self.stride_time = 0.12
         self.smoothing = 0.8
 
+        # init variables
         self.idx = 0
         self.t = 0
         self.start_t = self.t
@@ -56,12 +59,15 @@ class Nao(Robot):
             b = math.pi - c
             hip = -math.asin(pos[2] / L)
 
-            self.legJoints[prefix + "HipPitch"]["joint"].setPosition(-H)
-            self.legJoints[prefix + "KneePitch"]["joint"].setPosition(b)
-            self.legJoints[prefix + "AnklePitch"]["joint"].setPosition(H - b)
-            self.legJoints[prefix + "HipRoll"]["joint"].setPosition(hip)
-            self.legJoints[prefix + "AnkleRoll"]["joint"].setPosition(-hip)
-            self.legJoints[prefix + "HipYawPitch"]["joint"].setPosition(pos[3])
+            self.actuateLegs(prefix, H, b, hip, pos)
+
+    def actuateLegs(self, prefix, H, b, hip, pos):
+        self.legJoints[prefix + "HipPitch"]["joint"].setPosition(-H)
+        self.legJoints[prefix + "KneePitch"]["joint"].setPosition(b)
+        self.legJoints[prefix + "AnklePitch"]["joint"].setPosition(H - b)
+        self.legJoints[prefix + "HipRoll"]["joint"].setPosition(hip)
+        self.legJoints[prefix + "AnkleRoll"]["joint"].setPosition(-hip)
+        self.legJoints[prefix + "HipYawPitch"]["joint"].setPosition(pos[3])
 
     def walk(self):
 
