@@ -13,12 +13,11 @@ class Nao(Robot):
         # initialize stuff
         self.timeStep = int(self.getBasicTimeStep())
         self.findAndEnableDevices()
-        self.loadMotionFiles()
 
         # Animate handwave
+        self.handWave = Motion("./motions/HandWave.motion")
         self.handWave.setLoop(False)
         self.handWave.play()
-        self.currentlyPlaying = self.handWave
 
         # Walking parameters
         self.walk_speed = 1
@@ -47,6 +46,7 @@ class Nao(Robot):
         if not self.message:
             return
 
+        # Inputs
         if self.message[3] == 0:
             self.new_state = "walking"
             self.state_done = False
@@ -57,20 +57,29 @@ class Nao(Robot):
             self.new_state = "standing"
             self.state_done = False
 
+        # State Machine
         if self.state == "walking":
             print("Walking")
+
+            self.walk_speed = 1
             self.smoothing = 0.8
             self.walk()
+
         elif self.state == "kicking":
             print("Kicking")
+
+            self.walk_speed = 1
             self.smoothing = 0
             self.kick()
+
         elif self.state == "standing":
             print("Standing")
 
+        # Change of state
         if self.state_done:
             self.old_state = self.state
             self.state = self.new_state
+
             if self.old_state != self.state:
                 self.idx = 0
 
@@ -196,16 +205,6 @@ class Nao(Robot):
                 ((0.16, 0, 0.05, 0), (0.12, 0, 0, 0)),
                 ((0.16, 0, 0.05, 0), (0.12, 0, 0, 0)),
             ]
-
-    def loadMotionFiles(self):
-        self.handWave = Motion("./motions/HandWave.motion")
-
-    def startMotion(self, motion):
-        if self.currentlyPlaying:
-            self.currentlyPlaying.stop()
-
-        motion.play()
-        self.currentlyPlaying = motion
 
     def findAndEnableDevices(self):
         # Legs
