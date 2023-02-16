@@ -2699,7 +2699,7 @@ PROTO Nao [
           }
         ]
         jointParameters HingeJointParameters {
-          axis 0 0.707107 0.707107
+          axis 0 0 -1
           anchor 0 -0.05 -0.085
         }
         endPoint Solid {
@@ -4394,7 +4394,7 @@ PROTO Nao [
           }
         ]
         jointParameters HingeJointParameters {
-          axis 0 0.707107 -0.707107
+          axis 0 0 1
           anchor 0 0.05 -0.085
         }
         endPoint Solid {

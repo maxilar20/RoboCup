@@ -1,6 +1,10 @@
 from controller import Supervisor
-from Entity import *
-from GUI import *
+from Objects.Player import *
+from Objects.Ball import *
+from Objects.Field import *
+from Objects.Button import *
+from Objects.GUI import *
+from Objects.CONFIG import *
 import time
 
 
@@ -10,8 +14,12 @@ class SimController(Supervisor):
 
         self.boundaries = boundaries
 
-        self.players = [Player(self, **player) for player in player_definitions]
-        self.ball = Ball(self)
+        self.GUI = GUI()
+
+        self.field = Field(boundaries, self.GUI)
+
+        self.debug = False
+        self.button1 = Button(self.GUI.screen, (10, 10), "Debug", 20, "black on white")
 
         self.start_game_time_seconds = time.time()
         self.max_game_time_secs = max_game_time_mins * 60
@@ -19,15 +27,22 @@ class SimController(Supervisor):
         self.red_score = 0
         self.blue_score = 0
 
-        self.GUI = GUI()
+        self.keyboard = self.getKeyboard()
+        self.timeStep = int(self.getBasicTimeStep())
+        self.keyboard.enable(10 * self.timeStep)
+
+        self.emitter = self.getDevice("emitter")
+
+        self.ball = Ball(self, self.GUI)
+
+        self.players = [
+            Player(self, **player, GUI=self.GUI, emitter=self.emitter, ball=self.ball)
+            for player in player_definitions
+        ]
 
     def run(self):
+        ###################### SIMULATION ######################
         simcontroller.get_time()
-
-        score_text = f"    Red {self.red_score} | {self.blue_score} Blue"
-        self.GUI.runGUI(
-            self.ball, self.players, self.time_passed_text + score_text, self.boundaries
-        )
 
         if simcontroller.time_up():
             simcontroller.end_simulation()
@@ -36,9 +51,74 @@ class SimController(Supervisor):
             simcontroller.reset_simulation()
 
         if simcontroller.ball_out():
+            print("Ball Out")
             simcontroller.reset_simulation()
 
         # TODO: Check if there's been a fault
+
+        ######################   Update  ######################
+
+        for player in self.players:
+            player.getPosition()
+
+        for player in self.players:
+            player.senseDistances(self.field, self.players)
+
+        ######################   Run  ######################
+
+        # for player in self.players:
+        #     player.act()
+        # self.players[0].act()
+
+        self.moveRobot()
+
+        ######################   GUI  ######################
+        self.GUI.run()
+
+        self.field.show()
+
+        for player in self.players:
+            player.showPlayer()
+            if self.debug:
+                player.showSensors()
+
+        self.ball.show()
+
+        self.debug = self.button1.update()
+        self.GUI.drawText(self.time_passed_text, self.red_score, self.blue_score)
+
+        self.GUI.flip()
+
+    def moveRobot(self, channel=0):
+        message = [0.0, 0.0, 0.0, 0.0]
+
+        keys = pygame.key.get_pressed()
+
+        if keys[pygame.K_a]:
+            message[0] += -1.0
+
+        if keys[pygame.K_d]:
+            message[0] += 1.0
+
+        if keys[pygame.K_w]:
+            message[1] += 1.0
+
+        if keys[pygame.K_s]:
+            message[1] += -1.0
+
+        if keys[pygame.K_q]:
+            message[2] += -1.0
+
+        if keys[pygame.K_e]:
+            message[2] += 1.0
+
+        if keys[pygame.K_SPACE]:
+            message[3] = 1
+
+        if keys[pygame.K_r]:
+            message[3] = 2
+
+        self.emitter.send(message)
 
     def reset_simulation(self):
         self.ball.reset()
@@ -46,17 +126,19 @@ class SimController(Supervisor):
             player.reset()
 
     def check_goal(self):
-        if isInside(self.ball.getPosition(), self.boundaries["goal_red"]):
+        if self.field.isInside(self.ball.getPosition(), "goal_red"):
             self.blue_score += 1
+            print("Blue Team Scored")
             return True
-        elif isInside(self.ball.getPosition(), self.boundaries["goal_blue"]):
+        elif self.field.isInside(self.ball.getPosition(), "goal_blue"):
             self.red_score += 1
+            print("Red Team Scored")
             return True
         else:
             return False
 
     def ball_out(self):
-        return not isInside(self.ball.getPosition(), self.boundaries["field"])
+        return not self.field.isInside(self.ball.getPosition(), "field")
 
     def get_time(self):
         self.time_passed = time.time() - self.start_game_time_seconds
@@ -69,78 +151,9 @@ class SimController(Supervisor):
         print("Sim ended")
 
 
-def isInside(pos, boundary):
-    return (
-        pos[0] > boundary[0]
-        and pos[0] < boundary[2]
-        and pos[1] < boundary[1]
-        and pos[1] > boundary[3]
-    )
-
-
-player_definitions = [
-    {
-        "player": "1",
-        "team": "red",
-        "player_position": "goalie",
-        "translation": "-4 0 0.4",
-    },
-    {
-        "player": "2",
-        "team": "red",
-        "player_position": "defender",
-        "translation": "-2.5 0 0.4",
-    },
-    {
-        "player": "3",
-        "team": "red",
-        "player_position": "attacker_left",
-        "translation": "-1 0.5 0.4",
-    },
-    {
-        "player": "4",
-        "team": "red",
-        "player_position": "attacker_right",
-        "translation": "-1 -0.5 0.4",
-    },
-    {
-        "player": "1",
-        "team": "blue",
-        "player_position": "goalie",
-        "translation": "4 0 0.4",
-    },
-    {
-        "player": "2",
-        "team": "blue",
-        "player_position": "defender",
-        "translation": "2.5 0 0.4",
-    },
-    {
-        "player": "3",
-        "team": "blue",
-        "player_position": "attacker_left",
-        "translation": "1 -0.5 0.4",
-    },
-    {
-        "player": "4",
-        "team": "blue",
-        "player_position": "attacker_right",
-        "translation": "1 0.5 0.4",
-    },
-]
-
-boundaries = {
-    "goal_red": (-5, 0.7, -4.5, -0.7),
-    "goal_blue": (4.5, 0.7, 5, -0.7),
-    "field": (-4.5, 3, 4.5, -3),
-    "penalty_red": (-4.5, 1, -4, -1),
-    "penalty_blue": (4, 1, 4.5, -1),
-}
-
 if __name__ == "__main__":
 
-    # Initializing controller
-    simcontroller = SimController(boundaries, max_game_time_mins=15)
+    simcontroller = SimController(boundaries, max_game_time_mins=GAME_TIME)
 
     TIME_STEP = 32
     while simcontroller.step(TIME_STEP) != -1:
