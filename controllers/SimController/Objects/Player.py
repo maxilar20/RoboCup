@@ -28,13 +28,15 @@ class Player(Entity):
 
         # Node Spawning
         if team == "red":
-            color = [1, 0, 0]
+            self.color = (255, 0, 0)
+            spawn_color = [1, 0, 0]
             rotation = "0 0 1 0"
         else:
-            color = [0, 0, 1]
+            self.color = (0, 0, 255)
+            spawn_color = [0, 0, 1]
             rotation = "0 0 1 3.1415"
 
-        custom_args = f"customColor {color} channel {channel}"
+        custom_args = f"customColor {spawn_color} channel {channel}"
 
         super().__init__(
             robot,
@@ -51,27 +53,28 @@ class Player(Entity):
         self.possible_distances = np.linspace(0, self.max_sensor_dist, 10)
         self.distances = np.zeros(self.sensor_angles.size)
 
-        self.vec = math.Vector2(0)
+        self.move_vector = math.Vector2(0)
 
     def act(self):
 
         flee = self.flee().clamp_magnitude(1)
         pursue = self.pursue(self.ball.getPosition()).normalize()
 
-        self.vec = math.Vector2(0.0001)
-        self.vec += flee
-        self.vec += pursue
+        self.move_vector = math.Vector2(0.0001)
 
-        self.vec = self.vec.normalize()
+        self.move_vector += flee
+        self.move_vector += pursue
 
-        if (self.vec.as_polar()[1]) > 10:
+        self.move_vector = self.move_vector.normalize()
+
+        if (self.move_vector.as_polar()[1]) > 10:
             rot = -0.5
-        elif (self.vec.as_polar()[1]) < -10:
+        elif (self.move_vector.as_polar()[1]) < -10:
             rot = 0.5
         else:
             rot = 0
 
-        message = [-self.vec[1], self.vec[0], rot]
+        message = [-self.move_vector[1], self.move_vector[0], rot]
 
         self.emitter.setChannel(self.channel)
         self.emitter.send(message)
@@ -81,9 +84,9 @@ class Player(Entity):
         for idx, angle in enumerate(self.sensor_angles):
             sensor_dir = angle + orientation
             dir = np.array((np.cos(sensor_dir), np.sin(sensor_dir)))
-            self.distances[idx] = self.sense(field, players, dir)
+            self.distances[idx] = self.senseDistance(field, players, dir)
 
-    def sense(self, field, players, dir):
+    def senseDistance(self, field, players, dir):
         for dist in self.possible_distances:
             point = self.position + (dist * dir)
             if not field.isInside(point):
@@ -111,14 +114,9 @@ class Player(Entity):
         return math.Vector2((np.cos(ang), -np.sin(ang)))
 
     def showPlayer(self):
-        if self.team == "red":
-            color = (255, 0, 0)
-        elif self.team == "blue":
-            color = (0, 0, 255)
-
         pygame.draw.circle(
             self.GUI.screen,
-            color,
+            tuple(self.color),
             self.GUI.mapToGUI(self.position),
             self.GUI.scaleToGUI(self.circle_radius),
         )
@@ -155,21 +153,21 @@ class Player(Entity):
 
     def showSensors(self):
         orientation = self.getOrientation()
-        # for angle, distance in zip(self.sensor_angles, self.distances):
-        #     sensor_dir = angle + orientation
-        #     dir_vector = np.array((np.cos(sensor_dir), np.sin(sensor_dir)))
-        #     pygame.draw.lines(
-        #         self.GUI.screen,
-        #         (255, 255, 255),
-        #         True,
-        #         [
-        #             self.GUI.mapToGUI(self.position),
-        #             self.GUI.mapToGUI(self.position + distance * dir_vector),
-        #         ],
-        #         1,
-        #     )
+        for angle, distance in zip(self.sensor_angles, self.distances):
+            sensor_dir = angle + orientation
+            dir_vector = np.array((np.cos(sensor_dir), np.sin(sensor_dir)))
+            pygame.draw.lines(
+                self.GUI.screen,
+                (255, 255, 255),
+                True,
+                [
+                    self.GUI.mapToGUI(self.position),
+                    self.GUI.mapToGUI(self.position + distance * dir_vector),
+                ],
+                1,
+            )
 
-        dir_vector = self.vec.rotate_rad(orientation)
+        dir_vector = self.move_vector.rotate_rad(orientation)
         pygame.draw.lines(
             self.GUI.screen,
             (255, 0, 0),
