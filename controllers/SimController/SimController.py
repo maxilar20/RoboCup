@@ -66,7 +66,7 @@ class SimController(Supervisor):
         #     player.act()
         # self.players[0].act()
 
-        self.moveRobot()
+        self.moveRobot(channel=3)
 
         # GUI
         self.debug = self.debug_button.update()
@@ -110,6 +110,7 @@ class SimController(Supervisor):
         if keys[pygame.K_r]:
             message[3] = 2
 
+        self.emitter.setChannel(channel)
         self.emitter.send(message)
 
     def reset_simulation(self):
