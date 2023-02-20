@@ -12,40 +12,50 @@ class Coach:
         self.field = field
         self.ball = ball
 
-    def act(self, GUI):
+        top_left, bottom_right = field.boundaries["field"]
+        self.lines = self.getLinesInRect(top_left, bottom_right)
+        self.line_vectors = [vec2(0, -1), vec2(1, 0), vec2(0, 1), vec2(-1, 0)]
 
+    def getLinesInRect(self, top_left, bottom_right):
+        return [
+            (top_left, top_left.reflect((-1, 0))),
+            (top_left, top_left.reflect((0, -1))),
+            (bottom_right, bottom_right.reflect((-1, 0))),
+            (bottom_right, bottom_right.reflect((0, -1))),
+        ]
+
+    def act(self, GUI):
         goal_name = "goal_blue" if self.own_players[0].team == "red" else "goal_red"
+
         ball_mov_vector = self.ballPlan(goal_name)
         dribbling_pos = ball_mov_vector.normalize() * -0.3
-        self.show(GUI, self.ball, ball_mov_vector)
-        self.show(GUI, self.ball, dribbling_pos, color=[255, 0, 0])
 
         for player in self.own_players:
             if player.player_position == "attacker_right":
 
-                goal_pos = dribbling_pos + self.ball.getPosition()
+                goal_pos = dribbling_pos + self.ball.position
 
-                if (goal_pos - player.getPosition()).magnitude() > 0.3:
+                if (goal_pos - player.position).magnitude() > 0.3:
                     avoid_vector = self.avoidEntity(player, self.all_players, 1)
                     pursue_vector = self.pursue(player, goal_pos)
                     mov_vector = avoid_vector + pursue_vector
                     look_vector = mov_vector
-                elif 0.15 < (goal_pos - player.getPosition()).magnitude() < 0.3:
+                elif 0.15 < (goal_pos - player.position).magnitude() < 0.3:
                     avoid_vector = self.avoidEntity(player, self.all_players, 1)
                     pursue_vector = self.pursue(player, goal_pos)
                     mov_vector = avoid_vector + pursue_vector
-                    look_vector = self.ball.getPosition()
+                    look_vector = self.ball.position
 
                 else:
                     pursue_vector = self.pursue(
-                        player, ball_mov_vector + self.ball.getPosition()
+                        player, ball_mov_vector + self.ball.position
                     )
                     mov_vector = pursue_vector
-                    look_vector = self.pursue(player, self.ball.getPosition())
+                    look_vector = self.pursue(player, self.ball.position)
             else:
                 avoid_vector = self.avoidEntity(player, self.all_players, 1)
                 mov_vector = avoid_vector
-                look_vector = self.pursue(player, self.ball.getPosition())
+                look_vector = self.pursue(player, self.ball.position)
 
             mov_vector = mov_vector.clamp_magnitude(1)
             mov_vector_rotated = self.transformToPlayer(player, mov_vector)
@@ -55,53 +65,41 @@ class Coach:
             rot = np.interp(look_vector_rotated.as_polar()[1], [-180, 180], [2, -2])
             rot = max(min(rot, 1), -1)
 
-            self.show(GUI, player, mov_vector)
             player.act(mov_vector_rotated, rot)
+
+            self.show(GUI, player, mov_vector)
+
+        self.show(GUI, self.ball, ball_mov_vector)
+        self.show(GUI, self.ball, dribbling_pos, color=[255, 0, 0])
 
     def ballPlan(self, field):
         avoid_vector = self.avoidEntity(self.ball, self.enemy_players, 1)
-        avoid_out_vector = self.avoidField(self.ball, self.field, 0.5)
+        avoid_out_vector = self.avoidField(self.ball, 0.5)
         pursue_vector = self.pursue(self.ball, self.field.getCenterPosition(field))
         mov_vector = avoid_vector + pursue_vector + avoid_out_vector
         return mov_vector
 
     def avoidEntity(self, own, others, dist):
         avoid_vector = vec2(0.001)
-
         for other in others:
             if own.name != other.name:
-                dif_vector = own.getPosition() - other.getPosition()
+                dif_vector = own.position - other.position
                 dif_vector = dif_vector.clamp_magnitude(dist)
                 dif_vector.scale_to_length(dist - dif_vector.magnitude())
                 avoid_vector += dif_vector
         return avoid_vector
 
-    def avoidField(self, own, field, dist):
-        top_left, bottom_right = field.boundaries["field"]
-        lines = [
-            (top_left, top_left.reflect((-1, 0))),
-            (top_left, top_left.reflect((0, -1))),
-            (bottom_right, bottom_right.reflect((-1, 0))),
-            (bottom_right, bottom_right.reflect((0, -1))),
-        ]
-        line_vectors = [
-            vec2(0, -1),
-            vec2(1, 0),
-            vec2(0, 1),
-            vec2(-1, 0),
-        ]
-
+    def avoidField(self, own, dist):
         avoid_vector = vec2(0.001)
-        for line, vector in zip(lines, line_vectors):
-            dif_vector = vector * lineseg_dist(own.getPosition(), line[0], line[1])
+        for line, vector in zip(self.lines, self.line_vectors):
+            dif_vector = vector * lineseg_dist(own.position, line[0], line[1])
             dif_vector = dif_vector.clamp_magnitude(dist)
             dif_vector.scale_to_length(dist - dif_vector.magnitude())
             avoid_vector += dif_vector
-
         return avoid_vector
 
     def pursue(self, own, goal_position):
-        pursue_vector = goal_position - own.getPosition()
+        pursue_vector = goal_position - own.position
         pursue_vector = pursue_vector.normalize()
         return pursue_vector
 
@@ -113,8 +111,8 @@ class Coach:
         pygame.draw.line(
             GUI.screen,
             color,
-            GUI.mapToGUI(player.getPosition()),
-            GUI.mapToGUI(player.getPosition() + goal),
+            GUI.mapToGUI(player.position),
+            GUI.mapToGUI(player.position + goal),
             1,
         )
 

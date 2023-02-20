@@ -58,14 +58,6 @@ class SimController(Supervisor):
 
         # TODO: Check if there's been a fault
 
-        # Run
-
-        # for player in self.players:
-        #     player.act()
-        # self.players[0].act()
-
-        # self.moveRobot(3)
-
         # GUI
         self.debug = self.debug_button.update()
         scores = (self.red_score, self.blue_score)
@@ -80,6 +72,10 @@ class SimController(Supervisor):
         )
 
         # Update
+        for player in self.players:
+            player.getPosition()
+        self.ball.getPosition()
+
         self.red_coach.act(self.GUI)
         self.blue_coach.act(self.GUI)
 
