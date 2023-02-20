@@ -42,6 +42,15 @@ class SimController(Supervisor):
         self.red_coach = Coach(self.red_team, self.blue_team, self.field, self.ball)
         self.blue_coach = Coach(self.blue_team, self.red_team, self.field, self.ball)
 
+    def detect_fallen(self, player):
+        # Forward
+        if player.getGyro()[1] > 0.9:
+            return True
+        # Backward
+        elif player.getGyro()[1] > -0.9:
+            return True
+
+        
     def run(self):
         # SIMULATION
         simcontroller.get_time()
@@ -57,6 +66,8 @@ class SimController(Supervisor):
             simcontroller.reset_simulation()
 
         # TODO: Check if there's been a fault
+        for player in self.players:
+            self.detect_fallen(player)
 
         # GUI
         self.debug = self.debug_button.update()
