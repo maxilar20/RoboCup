@@ -1,5 +1,5 @@
 from controller import Supervisor
-from objects import Player, Ball, Field, GUI, Button
+from Objects import Player, Ball, Field, GUI, Button
 from coach import Coach
 from config import GAME_TIME, PLAYERS_DEF, BOUNDARIES
 
@@ -114,9 +114,10 @@ class SimController(Supervisor):
         self.emitter.send(message)
 
     def reset_simulation(self):
-        self.ball.reset()
+        self.ball.resetPosition()
         for player in self.players:
-            player.reset()
+            player.resetPosition()
+            player.resetOrientation()
 
     def check_goal(self):
         if self.field.isInside(self.ball.getPosition(), "goal_red"):

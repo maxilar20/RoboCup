@@ -31,7 +31,7 @@ class Entity:
     def getPosition(self):
         self.position = math.Vector2(self.position_field.getSFVec3f()[:2])
         return self.position
-
+    
     def getOrientation(self):
         if self.orientation_field.getSFVec3f()[2] > 0:
             return self.orientation_field.getSFVec3f()[3]
@@ -41,5 +41,8 @@ class Entity:
     def isInside(self, point):
         return point.distance_squared_to(self.position) < (self.circle_radius_sq)
 
-    def reset(self):
+    def resetPosition(self):
         self.position_field.setSFVec3f([float(i) for i in self.translation.split()])
+
+    def resetOrientation(self):
+        self.orientation_field.setSFRotation([float(i) for i in self.rotation.split()])
