@@ -8,7 +8,6 @@ class Player(Entity):
     def __init__(
         self, robot, player, team, player_position, translation, channel, emitter
     ):
-
         self.emitter = emitter
 
         # Player Attributes
