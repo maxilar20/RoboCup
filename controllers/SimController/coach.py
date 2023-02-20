@@ -53,7 +53,7 @@ class Coach:
             player.act(mov_vector_rotated, rot)
 
     def ballPlan(self, GUI, field):
-        avoid_vector = self.avoid(self.ball, self.enemy_players, 1.5)
+        avoid_vector = self.avoid(self.ball, self.enemy_players, 1)
         pursue_vector = self.pursue(self.ball, self.field.getCenterPosition(field))
         mov_vector = avoid_vector + pursue_vector
         return mov_vector

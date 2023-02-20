@@ -81,6 +81,7 @@ class SimController(Supervisor):
 
         # Update
         self.red_coach.act(self.GUI)
+        self.blue_coach.act(self.GUI)
 
         self.GUI.flip()
 
