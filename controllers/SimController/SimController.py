@@ -1,5 +1,5 @@
 from controller import Supervisor
-from Objects import Player, Ball, Field, GUI, Button
+from objects import Player, Ball, Field, GUI, Button
 from coach import Coach
 from config import GAME_TIME, PLAYERS_DEF, BOUNDARIES
 

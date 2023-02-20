@@ -1,4 +1,4 @@
-from .Entity import Entity
+from .entity import Entity
 
 
 class Ball(Entity):

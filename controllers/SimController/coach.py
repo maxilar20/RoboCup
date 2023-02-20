@@ -12,9 +12,18 @@ class Coach:
         self.field = field
         self.ball = ball
 
+        self.players_dict = {}
+        for player in self.own_players:
+            self.players_dict[player.player_position] = player
+        print(self.players_dict)
+
+        self.team = self.own_players[0].team
+        self.goal_name = "goal_blue" if self.team == "red" else "goal_red"
         top_left, bottom_right = field.boundaries["field"]
         self.lines = self.getLinesInRect(top_left, bottom_right)
         self.line_vectors = [vec2(0, -1), vec2(1, 0), vec2(0, 1), vec2(-1, 0)]
+
+        self.state = "Attacking"
 
     def getLinesInRect(self, top_left, bottom_right):
         return [
@@ -25,9 +34,18 @@ class Coach:
         ]
 
     def act(self, GUI):
-        goal_name = "goal_blue" if self.own_players[0].team == "red" else "goal_red"
+        print(self.team + self.state)
 
-        ball_mov_vector = self.ballPlan(goal_name)
+        if self.state == "Attacking":
+            self.attack(GUI)
+        elif self.state == "Defending":
+            pass
+        elif self.state == "Kick Off" or self.state == "Frozen":
+            pass
+
+    def attack(self, GUI):
+        # Ball Plan
+        ball_mov_vector = self.ballPlan(self.goal_name)
         dribbling_pos = ball_mov_vector.normalize() * -0.3
 
         for player in self.own_players:
@@ -118,17 +136,13 @@ class Coach:
 
 
 def lineseg_dist(p, a, b):
-    # normalized tangent vector
     d = np.divide(b - a, np.linalg.norm(b - a))
 
-    # signed parallel distance components
     s = np.dot(a - p, d)
     t = np.dot(p - b, d)
 
-    # clamped parallel distance
     h = np.maximum.reduce([s, t, 0])
 
-    # perpendicular distance component
     c = np.cross(p - a, d)
 
     return np.hypot(h, np.linalg.norm(c))
