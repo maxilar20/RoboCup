@@ -1,11 +1,14 @@
 from controller import Supervisor
-from objects import Player, Ball, Field, GUI, Button
+from Objects import Player, Ball, Field, GUI, Button
 from coach import Coach
 from config import GAME_TIME, PLAYERS_DEF, BOUNDARIES
 
 import pygame
 
 import time
+
+import numpy as np
+from scipy.spatial.transform import Rotation as R
 
 
 class SimController(Supervisor):
@@ -43,14 +46,13 @@ class SimController(Supervisor):
         self.blue_coach = Coach(self.blue_team, self.red_team, self.field, self.ball)
 
     def detect_fallen(self, player):
-        # Forward
-        if player.getGyro()[1] > 0.9:
-            return True
-        # Backward
-        elif player.getGyro()[1] > -0.9:
+        angle = R.from_rotvec(
+            player.getGyro()[3] * np.array(player.getGyro()[:3])
+        ).as_euler("zxy", degrees=True)[2]
+        if angle > 70 or angle < -70:
+            print("Fallen")
             return True
 
-        
     def run(self):
         # SIMULATION
         simcontroller.get_time()
@@ -67,7 +69,8 @@ class SimController(Supervisor):
 
         # TODO: Check if there's been a fault
         for player in self.players:
-            self.detect_fallen(player)
+            if self.detect_fallen(player):
+                player.resetOrientation()
 
         # GUI
         self.debug = self.debug_button.update()

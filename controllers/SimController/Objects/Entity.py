@@ -31,12 +31,15 @@ class Entity:
     def getPosition(self):
         self.position = math.Vector2(self.position_field.getSFVec3f()[:2])
         return self.position
-    
+
     def getOrientation(self):
         if self.orientation_field.getSFVec3f()[2] > 0:
             return self.orientation_field.getSFVec3f()[3]
         else:
             return (2 * 3.1415) - self.orientation_field.getSFVec3f()[3]
+
+    def getGyro(self):
+        return self.orientation_field.getSFRotation()
 
     def isInside(self, point):
         return point.distance_squared_to(self.position) < (self.circle_radius_sq)

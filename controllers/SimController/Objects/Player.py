@@ -1,4 +1,4 @@
-from .entity import Entity
+from .Entity import Entity
 from pygame import math
 import math as mt
 import numpy as np
