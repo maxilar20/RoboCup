@@ -36,6 +36,8 @@ class SimController(Supervisor):
 
         self.ball = Ball(self)
 
+
+
         self.players = [
             Player(self, **player, emitter=self.emitter) for player in PLAYERS_DEF
         ]
@@ -45,11 +47,16 @@ class SimController(Supervisor):
         self.red_coach = Coach(self.red_team, self.blue_team, self.field, self.ball)
         self.blue_coach = Coach(self.blue_team, self.red_team, self.field, self.ball)
 
+        self.latest_player = None
+
     def hasFallen(self, player):
         orientation = player.getGyro()
         angles = R.from_rotvec(orientation[3] * np.array(orientation[:3]))
         yaw = angles.as_euler("zxy", degrees=True)[2]
         return yaw > 70 or yaw < -70
+
+    def latest_ball(self):
+        pass
 
     def detect_closest(self, player):
         closest = None
@@ -72,8 +79,14 @@ class SimController(Supervisor):
         if simcontroller.check_goal():
             simcontroller.kickoff_position()
 
+        closest, closest_dist = self.detect_closest(self.ball)
+        if closest_dist < 0.4:
+            self.latest_player = closest
+
+
         if simcontroller.ball_out():
-            print("Ball Out")
+            if self.latest_player:
+                print(f"Ball Out by {self.latest_player.name}")
             simcontroller.kickoff_position()
 
         # Detecting if robot has fallen
