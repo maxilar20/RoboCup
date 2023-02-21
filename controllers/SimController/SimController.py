@@ -83,6 +83,10 @@ class SimController(Supervisor):
                 closest_player, closest_dist = self.detect_closest(player)
                 if closest_dist < 0.6:
                     print(f"Player {closest_player.name} made a fault")
+                    if player.team=="red" and self.field.isInside(player.position, "penalty_blue"):
+                        print("Red team gets penalty kick")
+                    elif player.team=="blue" and self.field.isInside(player.position, "penalty_red"):
+                        print("Blue team gets penalty kick")
                 else:
                     print("Fell by itself")
 
