@@ -83,9 +83,15 @@ class SimController(Supervisor):
                 closest_player, closest_dist = self.detect_closest(player)
                 if closest_dist < 0.6 and player.team != closest_player.team:
                     print(f"Player {closest_player.name} made a fault to {player.name}")
-                    if player.team=="red" and self.field.isInside(player.position, "penalty_blue"):
+                    if player.team == "red" and self.field.isInside(
+                        player.position, "penalty_blue"
+                    ):
                         print("Red team gets penalty kick")
-                    elif player.team=="blue" and self.field.isInside(player.position, "penalty_red"):
+                        self.penalty_position()
+                    elif player.team == "blue" and self.field.isInside(
+                        player.position, "penalty_red"
+                    ):
+                        self.penalty_position()
                         print("Blue team gets penalty kick")
                 else:
                     print("Fell by itself")
@@ -149,6 +155,13 @@ class SimController(Supervisor):
         self.ball.resetPosition()
         for player in self.players:
             player.resetPosition()
+            player.resetOrientation()
+        self.latest_player = None
+
+    def penalty_position(self):
+        self.ball.resetPosition()
+        for player in self.players:
+            player.setPosition(player.penalty_pos)
             player.resetOrientation()
         self.latest_player = None
 

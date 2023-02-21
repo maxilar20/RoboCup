@@ -44,6 +44,9 @@ class Entity:
     def isInside(self, point):
         return point.distance_squared_to(self.position) < (self.circle_radius_sq)
 
+    def setPosition(self, pos):
+        self.position_field.setSFVec3f([float(i) for i in pos.split()])
+
     def resetPosition(self):
         self.position_field.setSFVec3f([float(i) for i in self.translation.split()])
 
@@ -57,7 +60,3 @@ class Entity:
 
     def resetPhysics(self):
         self.node.resetPhysics()
-
-
-
-
