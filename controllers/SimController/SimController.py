@@ -67,8 +67,8 @@ class SimController(Supervisor):
 
         for player in self.players:
             if self.hasFallen(player):
-                player.resetOrientation()
                 player.resetHeight()
+                player.resetOrientation()
                 player.resetPhysics()
 
         # GUI
