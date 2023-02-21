@@ -162,6 +162,8 @@ class SimController(Supervisor):
         for player in self.players:
             player.resetPosition()
             player.resetOrientation()
+        self.latest_player = None
+
 
     def check_goal(self):
         if self.field.isInside(self.ball.getPosition(), "goal_red"):
