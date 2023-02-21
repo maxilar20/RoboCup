@@ -38,6 +38,8 @@ class Player(Entity):
             circle_radius=0.15,
         )
 
+        self.getPosition()
+
     def act(self, move_vector, rot):
         message = [-move_vector[1], move_vector[0], rot, 0]
 

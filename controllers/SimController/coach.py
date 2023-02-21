@@ -15,7 +15,6 @@ class Coach:
         self.players_dict = {}
         for player in self.own_players:
             self.players_dict[player.player_position] = player
-        print(self.players_dict)
 
         self.team = self.own_players[0].team
         self.goal_name = "goal_blue" if self.team == "red" else "goal_red"
