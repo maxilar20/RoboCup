@@ -45,13 +45,11 @@ class SimController(Supervisor):
         self.red_coach = Coach(self.red_team, self.blue_team, self.field, self.ball)
         self.blue_coach = Coach(self.blue_team, self.red_team, self.field, self.ball)
 
-    def detect_fallen(self, player):
-        angle = R.from_rotvec(
-            player.getGyro()[3] * np.array(player.getGyro()[:3])
-        ).as_euler("zxy", degrees=True)[2]
-        if angle > 70 or angle < -70:
-            print("Fallen")
-            return True
+    def hasFallen(self, player):
+        orientation = player.getGyro()
+        angles = R.from_rotvec(orientation[3] * np.array(orientation[:3]))
+        yaw = angles.as_euler("zxy", degrees=True)[2]
+        return yaw > 70 or yaw < -70
 
     def run(self):
         # SIMULATION
@@ -67,9 +65,8 @@ class SimController(Supervisor):
             print("Ball Out")
             simcontroller.reset_simulation()
 
-        # TODO: Check if there's been a fault
         for player in self.players:
-            if self.detect_fallen(player):
+            if self.hasFallen(player):
                 player.resetOrientation()
 
         # GUI
