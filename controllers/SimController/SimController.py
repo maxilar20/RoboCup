@@ -51,6 +51,17 @@ class SimController(Supervisor):
         yaw = angles.as_euler("zxy", degrees=True)[2]
         return yaw > 70 or yaw < -70
 
+    def detect_closest(self, player):
+        closest = None
+        closest_dist = 10000
+        for other_player in self.players:
+            if player != other_player:
+                dist = (player.position - other_player.position).magnitude()
+                if dist<closest_dist:
+                    closest = other_player
+                    closest_dist = dist
+        return closest,closest_dist
+
     def run(self):
         # SIMULATION
         simcontroller.get_time()
@@ -65,11 +76,17 @@ class SimController(Supervisor):
             print("Ball Out")
             simcontroller.kickoff_position()
 
+        # Detecting if robot has fallen
         for player in self.players:
             if self.hasFallen(player):
                 player.resetHeight()
                 player.resetOrientation()
                 player.resetPhysics()
+                closest,closest_dist = self.detect_closest(player)
+                if closest_dist<0.4:
+                    print(f"Player {closest.name} made a fault")
+                else:
+                    print("crybaby")
 
         # GUI
         self.debug = self.debug_button.update()
@@ -84,6 +101,7 @@ class SimController(Supervisor):
             self.buttons,
         )
 
+       
         # Update
         for player in self.players:
             player.getPosition()

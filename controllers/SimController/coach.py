@@ -34,7 +34,7 @@ class Coach:
         ]
 
     def act(self, GUI):
-        print(self.team + self.state)
+        # print(self.team + self.state)
 
         if self.state == "Attacking":
             self.attack(GUI)
