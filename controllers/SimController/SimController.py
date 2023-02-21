@@ -81,8 +81,8 @@ class SimController(Supervisor):
                 player.resetPhysics()
 
                 closest_player, closest_dist = self.detect_closest(player)
-                if closest_dist < 0.6:
-                    print(f"Player {closest_player.name} made a fault")
+                if closest_dist < 0.6 and player.team != closest_player.team:
+                    print(f"Player {closest_player.name} made a fault to {player.name}")
                     if player.team=="red" and self.field.isInside(player.position, "penalty_blue"):
                         print("Red team gets penalty kick")
                     elif player.team=="blue" and self.field.isInside(player.position, "penalty_red"):
