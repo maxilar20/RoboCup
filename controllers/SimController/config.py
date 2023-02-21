@@ -10,13 +10,15 @@ PLAYERS_DEF = [
         "player_position": "goalie",
         "translation": "-4 0 0.3",
         "channel": 0,
-    },
+        "penalty_position":"-4 0 0.3",
+            },
     {
         "player": "2",
         "team": "red",
         "player_position": "defender",
         "translation": "-2.5 0 0.3",
         "channel": 1,
+        "penalty_position":"-2 3.2 0.3",
     },
     {
         "player": "3",
@@ -24,6 +26,7 @@ PLAYERS_DEF = [
         "player_position": "attacker_left",
         "translation": "-1 0.5 0.3",
         "channel": 2,
+        "penalty_position":"-1 3.2 0.3",
     },
     {
         "player": "4",
@@ -31,6 +34,7 @@ PLAYERS_DEF = [
         "player_position": "attacker_right",
         "translation": "-1 -0.5 0.3",
         "channel": 3,
+        "penalty_position":"-3.25 0 0.3",
     },
     {
         "player": "1",
@@ -38,6 +42,7 @@ PLAYERS_DEF = [
         "player_position": "goalie",
         "translation": "4 0 0.3",
         "channel": 4,
+        "penalty_position":"4 0 0.3",
     },
     {
         "player": "2",
@@ -45,6 +50,7 @@ PLAYERS_DEF = [
         "player_position": "defender",
         "translation": "2.5 0 0.3",
         "channel": 5,
+        "penalty_position":"2 3.2 0.3",
     },
     {
         "player": "3",
@@ -52,6 +58,7 @@ PLAYERS_DEF = [
         "player_position": "attacker_left",
         "translation": "1 -0.5 0.3",
         "channel": 6,
+        "penalty_position":"1 3.2 0.3",
     },
     {
         "player": "4",
@@ -59,6 +66,7 @@ PLAYERS_DEF = [
         "player_position": "attacker_right",
         "translation": "1 0.5 0.3",
         "channel": 7,
+        "penalty_position":"3.25 0 0.3",
     },
 ]
 

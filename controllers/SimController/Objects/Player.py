@@ -7,7 +7,7 @@ from scipy.spatial.transform import Rotation as R
 
 class Player(Entity):
     def __init__(
-        self, robot, player, team, player_position, translation, channel, emitter
+        self, robot, player, team, player_position, translation, channel, penalty_pos, emitter
     ):
         self.emitter = emitter
 
@@ -15,6 +15,7 @@ class Player(Entity):
         self.team = team
         self.player_position = player_position
         self.channel = channel
+        self.penalty_pos = penalty_pos 
 
         # Node Spawning
         if team == "red":
@@ -40,6 +41,7 @@ class Player(Entity):
 
         self.getPosition()
 
+
     def act(self, move_vector, rot):
         message = [-move_vector[1], move_vector[0], rot, 0]
 
@@ -51,3 +53,4 @@ class Player(Entity):
         angles = R.from_rotvec(orientation[3] * np.array(orientation[:3]))
         yaw = angles.as_euler("zxy", degrees=True)[2]
         return yaw > 70 or yaw < -70
+    
