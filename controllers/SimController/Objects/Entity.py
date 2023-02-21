@@ -49,3 +49,15 @@ class Entity:
 
     def resetOrientation(self):
         self.orientation_field.setSFRotation([float(i) for i in self.rotation.split()])
+
+    def resetHeight(self):
+        position = list(self.getPosition())
+        position.append(0.32)
+        self.position_field.setSFVec3f(position)
+
+    def resetPhysics(self):
+        self.node.resetPhysics()
+
+
+
+
