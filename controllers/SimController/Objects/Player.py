@@ -1,7 +1,8 @@
 from .Entity import Entity
-from pygame import math
+from pygame.math import Vector2 as vec2
 import math as mt
 import numpy as np
+from scipy.spatial.transform import Rotation as R
 
 
 class Player(Entity):
@@ -37,18 +38,14 @@ class Player(Entity):
             circle_radius=0.15,
         )
 
-        self.max_sensor_dist = 1
-        self.sensor_angles = np.linspace(0, 2 * 3.14, 40)[:-1]
-        self.possible_distances = np.linspace(0, self.max_sensor_dist, 10)
-        self.distances = np.zeros(self.sensor_angles.size)
-
-        self.move_vector = math.Vector2(0)
-
-        self.getPosition()
-
     def act(self, move_vector, rot):
-
         message = [-move_vector[1], move_vector[0], rot, 0]
 
         self.emitter.setChannel(self.channel)
         self.emitter.send(message)
+
+    def hasFallen(self):
+        orientation = self.getGyro()
+        angles = R.from_rotvec(orientation[3] * np.array(orientation[:3]))
+        yaw = angles.as_euler("zxy", degrees=True)[2]
+        return yaw > 70 or yaw < -70

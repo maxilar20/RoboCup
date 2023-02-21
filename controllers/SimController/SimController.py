@@ -7,9 +7,6 @@ import pygame
 
 import time
 
-import numpy as np
-from scipy.spatial.transform import Rotation as R
-
 
 class SimController(Supervisor):
     def __init__(self, BOUNDARIES, max_game_time_mins=15):
@@ -36,8 +33,6 @@ class SimController(Supervisor):
 
         self.ball = Ball(self)
 
-
-
         self.players = [
             Player(self, **player, emitter=self.emitter) for player in PLAYERS_DEF
         ]
@@ -49,25 +44,16 @@ class SimController(Supervisor):
 
         self.latest_player = None
 
-    def hasFallen(self, player):
-        orientation = player.getGyro()
-        angles = R.from_rotvec(orientation[3] * np.array(orientation[:3]))
-        yaw = angles.as_euler("zxy", degrees=True)[2]
-        return yaw > 70 or yaw < -70
-
-    def latest_ball(self):
-        pass
-
     def detect_closest(self, player):
         closest = None
-        closest_dist = 10000
+        closest_dist = 99
         for other_player in self.players:
             if player != other_player:
                 dist = (player.position - other_player.position).magnitude()
-                if dist<closest_dist:
+                if dist < closest_dist:
                     closest = other_player
                     closest_dist = dist
-        return closest,closest_dist
+        return closest, closest_dist
 
     def run(self):
         # SIMULATION
@@ -83,23 +69,22 @@ class SimController(Supervisor):
         if closest_dist < 0.4:
             self.latest_player = closest
 
-
         if simcontroller.ball_out():
             if self.latest_player:
                 print(f"Ball Out by {self.latest_player.name}")
             simcontroller.kickoff_position()
 
-        # Detecting if robot has fallen
         for player in self.players:
-            if self.hasFallen(player):
+            if player.hasFallen():
                 player.resetHeight()
                 player.resetOrientation()
                 player.resetPhysics()
-                closest,closest_dist = self.detect_closest(player)
-                if closest_dist<0.4:
-                    print(f"Player {closest.name} made a fault")
+
+                closest_player, closest_dist = self.detect_closest(player)
+                if closest_dist < 0.6:
+                    print(f"Player {closest_player.name} made a fault")
                 else:
-                    print("crybaby")
+                    print("Fell by itself")
 
         # GUI
         self.debug = self.debug_button.update()
@@ -114,7 +99,6 @@ class SimController(Supervisor):
             self.buttons,
         )
 
-       
         # Update
         for player in self.players:
             player.getPosition()
@@ -163,7 +147,6 @@ class SimController(Supervisor):
             player.resetPosition()
             player.resetOrientation()
         self.latest_player = None
-
 
     def check_goal(self):
         if self.field.isInside(self.ball.getPosition(), "goal_red"):
