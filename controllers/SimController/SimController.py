@@ -59,11 +59,11 @@ class SimController(Supervisor):
             simcontroller.end_simulation()
 
         if simcontroller.check_goal():
-            simcontroller.reset_simulation()
+            simcontroller.kickoff_position()
 
         if simcontroller.ball_out():
             print("Ball Out")
-            simcontroller.reset_simulation()
+            simcontroller.kickoff_position()
 
         for player in self.players:
             if self.hasFallen(player):
@@ -126,7 +126,7 @@ class SimController(Supervisor):
         self.emitter.setChannel(channel)
         self.emitter.send(message)
 
-    def reset_simulation(self):
+    def kickoff_position(self):
         self.ball.resetPosition()
         for player in self.players:
             player.resetPosition()
