@@ -48,7 +48,6 @@ class SimController(Supervisor):
 
         self.latest_player = None
 
-
     def detect_closest(self, player):
         closest = None
         closest_dist = 99
@@ -88,11 +87,15 @@ class SimController(Supervisor):
                 closest_player, closest_dist = self.detect_closest(player)
                 if closest_dist < 0.6 and player.team != closest_player.team:
                     print(f"Player {closest_player.name} made a fault to {player.name}")
-                    if player.team == "red" and self.field.isInside(player.position, "penalty_blue"):
+                    if player.team == "red" and self.field.isInside(
+                        player.position, "penalty_blue"
+                    ):
                         print("Red team gets penalty kick")
-                        self.penalty_position('Red')
-                    elif player.team == "blue" and self.field.isInside(player.position, "penalty_red"):
-                        self.penalty_position('Blue')
+                        self.penalty_position("red")
+                    elif player.team == "blue" and self.field.isInside(
+                        player.position, "penalty_red"
+                    ):
+                        self.penalty_position("blue")
                         print("Blue team gets penalty kick")
                 else:
                     print("Fell by itself")
@@ -160,32 +163,15 @@ class SimController(Supervisor):
         self.latest_player = None
 
     def penalty_position(self, team):
-        # Ball
-        penalty_pos_ball_red = ('penality', (3.2, -0.1, 0.3))
-        penalty_pos_ball_blue = ('penality', (-3.2, -0.1, 0.3))
-        
-        # Player(red4 and blue4)
-        penalty_pos_player_red = "2.6 -0.00166535 0.289525"
-        penalty_pos_player_blue = "-2.6 -0.00166535 0.289525"
-
-        if team == 'Red':
-            penalty_ball_pos = penalty_pos_ball_red
-            penalty_pos_player = penalty_pos_player_red
-            player_name = 'red_4'
-        else:
-            penalty_ball_pos = penalty_pos_ball_blue
-            penalty_pos_player = penalty_pos_player_blue
-            player_name = 'blue_4'
-
-        self.ball.resetPosition(penalty_ball_pos)
+        if team == "red":
+            self.ball.setPosition([3.2, -0.1, 0.3])
+        elif team == "blue":
+            self.ball.setPosition([-3.2, -0.1, 0.3])
 
         for player in self.players:
-            if player.name == player_name:
-                player.penalty_pos = penalty_pos_player
             player.setPosition(player.penalty_pos)
             player.resetOrientation()
         self.latest_player = None
-
 
     def check_goal(self):
         if self.field.isInside(self.ball.getPosition(), "goal_red"):

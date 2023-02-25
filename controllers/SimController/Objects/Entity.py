@@ -7,10 +7,10 @@ class Entity:
     ):
         self.robot = robot
         self.name = name
-      
+
         self.DEF = DEF
         self.translation = translation
-       
+
         self.rotation = rotation
         self.custom_args = custom_args
         self.circle_radius = circle_radius
@@ -21,7 +21,7 @@ class Entity:
 
         self.node = self.robot.getFromDef(f"{self.name}")
         self.position_field = self.node.getField("translation")
-      
+
         self.orientation_field = self.node.getField("rotation")
 
     def spawn(self):
@@ -48,14 +48,13 @@ class Entity:
         return point.distance_squared_to(self.position) < (self.circle_radius_sq)
 
     def setPosition(self, pos):
-        self.position_field.setSFVec3f([float(i) for i in pos.split()])
-
-    def resetPosition(self, scene: None):
-        # Because reset can be called for other scenarios as well.
-        if scene and scene[0] == 'penality':
-            self.position_field.setSFVec3f([*scene[1]])
+        if type(pos) == str:
+            self.position_field.setSFVec3f([float(i) for i in pos.split()])
         else:
-            self.position_field.setSFVec3f([float(i) for i in self.translation.split()])
+            self.position_field.setSFVec3f(pos)
+
+    def resetPosition(self):
+        self.position_field.setSFVec3f([float(i) for i in self.translation.split()])
 
     def resetOrientation(self):
         self.orientation_field.setSFRotation([float(i) for i in self.rotation.split()])

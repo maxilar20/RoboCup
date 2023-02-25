@@ -33,7 +33,7 @@ PLAYERS_DEF = [
         "team": "red",
         "player_position": "attacker_right",
         "kickoff_pos": "-1 -0.5 0.3",
-        "penalty_pos": "-3.25 3.2 0.3",
+        "penalty_pos": "2.25 0 0.3",
         "channel": 3,
     },
     {
@@ -65,7 +65,7 @@ PLAYERS_DEF = [
         "team": "blue",
         "player_position": "attacker_right",
         "kickoff_pos": "1 0.5 0.3",
-        "penalty_pos": "3.25 3.2 0.3",
+        "penalty_pos": "-2.25 0 0.3",
         "channel": 7,
     },
 ]
