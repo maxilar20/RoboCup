@@ -49,9 +49,19 @@ class Player(Entity):
 
         self.getPosition()
 
-    def act(self, move_vector, rot):
-        message = [-move_vector[1], move_vector[0], rot, 0]
+    def act(self, move_vector, look_vector):
+        move_vector = move_vector.clamp_magnitude(1)
+        move_vector_rotated = self.transformToPlayer(self, move_vector)
 
+        look_vector_rotated = self.transformToPlayer(self, look_vector)
+
+        rot = np.interp(look_vector_rotated.as_polar()[1], [-180, 180], [2, -2])
+        rot = max(min(rot, 1), -1)
+
+        self.sendCommand(move_vector_rotated, rot)
+
+    def sendCommand(self, move_vector, rot):
+        message = [-move_vector[1], move_vector[0], rot, 0]
         self.emitter.setChannel(self.channel)
         self.emitter.send(message)
 
@@ -60,3 +70,44 @@ class Player(Entity):
         angles = R.from_rotvec(orientation[3] * np.array(orientation[:3]))
         yaw = angles.as_euler("zxy", degrees=True)[2]
         return yaw > 70 or yaw < -70
+
+    def avoidEntity(self, others, dist):
+        avoid_vector = vec2(0.001)
+        for other in others.values():
+            if self.name != other.name:
+                dif_vector = self.position - other.position
+                dif_vector = dif_vector.clamp_magnitude(dist)
+                dif_vector.scale_to_length(dist - dif_vector.magnitude())
+                avoid_vector += dif_vector
+        return avoid_vector
+
+    def avoidField(self, dist):
+        avoid_vector = vec2(0.001)
+        for line, vector in zip(self.lines, self.line_vectors):
+            dif_vector = vector * lineseg_dist(self.position, line[0], line[1])
+            dif_vector = dif_vector.clamp_magnitude(dist)
+            dif_vector.scale_to_length(dist - dif_vector.magnitude())
+            avoid_vector += dif_vector
+        return avoid_vector
+
+    def pursue(self, goal_position):
+        pursue_vector = goal_position - self.position
+        pursue_vector = pursue_vector.normalize()
+        return pursue_vector
+
+    def transformToPlayer(self, player, vector):
+        angle = mt.radians(vector.as_polar()[1]) - player.getOrientation()
+        return vector.magnitude() * vec2(mt.cos(angle), mt.sin(angle))
+
+
+def lineseg_dist(p, a, b):
+    d = np.divide(b - a, np.linalg.norm(b - a))
+
+    s = np.dot(a - p, d)
+    t = np.dot(p - b, d)
+
+    h = np.maximum.reduce([s, t, 0])
+
+    c = np.cross(p - a, d)
+
+    return np.hypot(h, np.linalg.norm(c))

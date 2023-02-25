@@ -6,19 +6,22 @@ import pygame
 
 class Coach:
     def __init__(self, own_players, enemy_players, field, ball, GUI):
-        self.own_players = own_players
-        self.enemy_players = enemy_players
-        self.all_players = self.own_players + self.enemy_players
+        self.own_players = {}
+        for player in own_players:
+            self.own_players[player.player_position] = player
+
+        self.enemy_players = {}
+        for player in enemy_players:
+            self.enemy_players[player.player_position] = player
+
+        self.all_players = self.own_players | self.enemy_players
         self.field = field
         self.ball = ball
 
         self.GUI = GUI
 
-        self.players_dict = {}
-        for player in self.own_players:
-            self.players_dict[player.player_position] = player
-
-        self.team = self.own_players[0].team
+        self.team = self.own_players["goalie"].team
+        self.other_team = self.enemy_players["goalie"].team
         self.goal_name = "goal_blue" if self.team == "red" else "goal_red"
         top_left, bottom_right = field.boundaries["field"]
         self.lines = self.getLinesInRect(top_left, bottom_right)
@@ -36,71 +39,109 @@ class Coach:
 
     def act(self):
         # print(self.team + self.state)
+        if self.field.isInside(self.ball.position, f"{self.other_team}_side"):
+            self.state = "Attacking"
+        elif self.field.isInside(self.ball.position, f"{self.team}_side"):
+            self.state = "Defending"
 
         if self.state == "Attacking":
             self.attack()
         elif self.state == "Defending":
-            pass
+            self.defend()
         elif self.state == "Kick Off" or self.state == "Frozen":
             pass
 
     def attack(self):
-        # Ball Plan
-        ball_mov_vector = self.ballPlan(self.goal_name)
+        player = self.own_players["attacker_right"]
+        goal_pos = self.field.getCenterPosition(f"goal_{self.other_team}")
+        move_vector, look_vector = self.moveBall(player, goal_pos)
+        player.act(move_vector, look_vector)
+        self.show(player, move_vector)
+
+        player = self.own_players["attacker_left"]
+        avoid_vector = player.avoidEntity(self.all_players, dist=1)
+        move_vector = avoid_vector
+        look_vector = player.pursue(self.ball.position)
+        player.act(move_vector, look_vector)
+        self.show(player, move_vector)
+
+        player = self.own_players["defender"]
+        avoid_vector = player.avoidEntity(self.all_players, dist=1)
+        move_vector = avoid_vector
+        look_vector = player.pursue(self.ball.position)
+        player.act(move_vector, look_vector)
+        self.show(player, move_vector)
+
+        player = self.own_players["goalie"]
+        avoid_vector = player.avoidEntity(self.all_players, dist=1)
+        move_vector = avoid_vector
+        look_vector = player.pursue(self.ball.position)
+        player.act(move_vector, look_vector)
+        self.show(player, move_vector)
+
+    def defend(self):
+        player = self.own_players["attacker_right"]
+        avoid_vector = player.avoidEntity(self.all_players, dist=1)
+        move_vector = avoid_vector
+        look_vector = player.pursue(self.ball.position)
+        player.act(move_vector, look_vector)
+        self.show(player, move_vector)
+
+        player = self.own_players["attacker_left"]
+        avoid_vector = player.avoidEntity(self.all_players, dist=1)
+        move_vector = avoid_vector
+        look_vector = player.pursue(self.ball.position)
+        player.act(move_vector, look_vector)
+        self.show(player, move_vector)
+
+        player = self.own_players["defender"]
+        move_vector, look_vector = self.moveBall(
+            player, self.own_players["attacker_right"].position
+        )
+        player.act(move_vector, look_vector)
+        self.show(player, move_vector)
+
+        player = self.own_players["goalie"]
+        avoid_vector = player.avoidEntity(self.all_players, dist=1)
+        move_vector = avoid_vector
+        look_vector = player.pursue(self.ball.position)
+        player.act(move_vector, look_vector)
+        self.show(player, move_vector)
+
+    def moveBall(self, player, goal_pos):
+        ball_mov_vector = self.ballPlan(goal_pos)
         dribbling_pos = ball_mov_vector.normalize() * -0.3
 
-        for player in self.own_players:
-            if player.player_position == "attacker_right":
+        goal_pos = dribbling_pos + self.ball.position
 
-                goal_pos = dribbling_pos + self.ball.position
+        if (goal_pos - player.position).magnitude() > 0.3:
+            avoid_vector = self.avoidEntity(player, self.all_players, dist=1)
+            pursue_vector = self.pursue(player, goal_pos)
+            move_vector = avoid_vector + pursue_vector
+            look_vector = move_vector
+        elif 0.15 < (goal_pos - player.position).magnitude() < 0.3:
+            avoid_vector = self.avoidEntity(player, self.all_players, dist=1)
+            pursue_vector = self.pursue(player, goal_pos)
+            move_vector = avoid_vector + pursue_vector
+            look_vector = self.ball.position
 
-                if (goal_pos - player.position).magnitude() > 0.3:
-                    avoid_vector = self.avoidEntity(player, self.all_players, 1)
-                    pursue_vector = self.pursue(player, goal_pos)
-                    mov_vector = avoid_vector + pursue_vector
-                    look_vector = mov_vector
-                elif 0.15 < (goal_pos - player.position).magnitude() < 0.3:
-                    avoid_vector = self.avoidEntity(player, self.all_players, 1)
-                    pursue_vector = self.pursue(player, goal_pos)
-                    mov_vector = avoid_vector + pursue_vector
-                    look_vector = self.ball.position
+        else:
+            pursue_vector = self.pursue(player, ball_mov_vector + self.ball.position)
+            move_vector = pursue_vector
+            look_vector = self.pursue(player, self.ball.position)
 
-                else:
-                    pursue_vector = self.pursue(
-                        player, ball_mov_vector + self.ball.position
-                    )
-                    mov_vector = pursue_vector
-                    look_vector = self.pursue(player, self.ball.position)
-            else:
-                avoid_vector = self.avoidEntity(player, self.all_players, 1)
-                mov_vector = avoid_vector
-                look_vector = self.pursue(player, self.ball.position)
+        return move_vector, look_vector
 
-            mov_vector = mov_vector.clamp_magnitude(1)
-            mov_vector_rotated = self.transformToPlayer(player, mov_vector)
-
-            look_vector_rotated = self.transformToPlayer(player, look_vector)
-
-            rot = np.interp(look_vector_rotated.as_polar()[1], [-180, 180], [2, -2])
-            rot = max(min(rot, 1), -1)
-
-            player.act(mov_vector_rotated, rot)
-
-            self.show(player, mov_vector)
-
-        self.show(self.ball, ball_mov_vector)
-        self.show(self.ball, dribbling_pos, color=[255, 0, 0])
-
-    def ballPlan(self, field):
+    def ballPlan(self, goal_pos):
         avoid_vector = self.avoidEntity(self.ball, self.enemy_players, 1)
         avoid_out_vector = self.avoidField(self.ball, 0.5)
-        pursue_vector = self.pursue(self.ball, self.field.getCenterPosition(field))
-        mov_vector = avoid_vector + pursue_vector + avoid_out_vector
-        return mov_vector
+        pursue_vector = self.pursue(self.ball, goal_pos)
+        move_vector = avoid_vector + pursue_vector + avoid_out_vector
+        return move_vector
 
     def avoidEntity(self, own, others, dist):
         avoid_vector = vec2(0.001)
-        for other in others:
+        for other in others.values():
             if own.name != other.name:
                 dif_vector = own.position - other.position
                 dif_vector = dif_vector.clamp_magnitude(dist)
