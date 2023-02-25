@@ -76,4 +76,6 @@ BOUNDARIES = {
     "field": (math.Vector2(-4.5, 3), math.Vector2(4.5, -3)),
     "penalty_red": (math.Vector2(-4.5, 1), math.Vector2(-4, -1)),
     "penalty_blue": (math.Vector2(4, 1), math.Vector2(4.5, -1)),
+    "red_side": (math.Vector2(-4.5, 3), math.Vector2(0, -3)),
+    "blue_side": (math.Vector2(0, 3), math.Vector2(4.5, -3)),
 }
