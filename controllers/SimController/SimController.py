@@ -39,8 +39,12 @@ class SimController(Supervisor):
 
         self.red_team = [player for player in self.players if player.team == "red"]
         self.blue_team = [player for player in self.players if player.team == "blue"]
-        self.red_coach = Coach(self.red_team, self.blue_team, self.field, self.ball)
-        self.blue_coach = Coach(self.blue_team, self.red_team, self.field, self.ball)
+        self.red_coach = Coach(
+            self.red_team, self.blue_team, self.field, self.ball, self.GUI
+        )
+        self.blue_coach = Coach(
+            self.blue_team, self.red_team, self.field, self.ball, self.GUI
+        )
 
         self.latest_player = None
 
@@ -114,8 +118,8 @@ class SimController(Supervisor):
             player.getPosition()
         self.ball.getPosition()
 
-        self.red_coach.act(self.GUI)
-        self.blue_coach.act(self.GUI)
+        self.red_coach.act()
+        self.blue_coach.act()
 
         self.GUI.flip()
 

@@ -5,12 +5,14 @@ import pygame
 
 
 class Coach:
-    def __init__(self, own_players, enemy_players, field, ball):
+    def __init__(self, own_players, enemy_players, field, ball, GUI):
         self.own_players = own_players
         self.enemy_players = enemy_players
         self.all_players = self.own_players + self.enemy_players
         self.field = field
         self.ball = ball
+
+        self.GUI = GUI
 
         self.players_dict = {}
         for player in self.own_players:
@@ -32,17 +34,17 @@ class Coach:
             (bottom_right, bottom_right.reflect((0, -1))),
         ]
 
-    def act(self, GUI):
+    def act(self):
         # print(self.team + self.state)
 
         if self.state == "Attacking":
-            self.attack(GUI)
+            self.attack()
         elif self.state == "Defending":
             pass
         elif self.state == "Kick Off" or self.state == "Frozen":
             pass
 
-    def attack(self, GUI):
+    def attack(self):
         # Ball Plan
         ball_mov_vector = self.ballPlan(self.goal_name)
         dribbling_pos = ball_mov_vector.normalize() * -0.3
@@ -84,10 +86,10 @@ class Coach:
 
             player.act(mov_vector_rotated, rot)
 
-            self.show(GUI, player, mov_vector)
+            self.show(player, mov_vector)
 
-        self.show(GUI, self.ball, ball_mov_vector)
-        self.show(GUI, self.ball, dribbling_pos, color=[255, 0, 0])
+        self.show(self.ball, ball_mov_vector)
+        self.show(self.ball, dribbling_pos, color=[255, 0, 0])
 
     def ballPlan(self, field):
         avoid_vector = self.avoidEntity(self.ball, self.enemy_players, 1)
@@ -124,12 +126,12 @@ class Coach:
         angle = mt.radians(vector.as_polar()[1]) - player.getOrientation()
         return vector.magnitude() * vec2(mt.cos(angle), mt.sin(angle))
 
-    def show(self, GUI, player, goal, color=[0, 255, 0]):
+    def show(self, player, goal, color=[0, 255, 0]):
         pygame.draw.line(
-            GUI.screen,
+            self.GUI.screen,
             color,
-            GUI.mapToGUI(player.position),
-            GUI.mapToGUI(player.position + goal),
+            self.GUI.mapToGUI(player.position),
+            self.GUI.mapToGUI(player.position + goal),
             1,
         )
 
