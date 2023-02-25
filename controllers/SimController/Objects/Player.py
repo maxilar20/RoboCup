@@ -73,7 +73,7 @@ class Player(Entity):
 
     def avoidEntity(self, others, dist):
         avoid_vector = vec2(0.001)
-        for other in others.values():
+        for other in others:
             if self.name != other.name:
                 dif_vector = self.position - other.position
                 dif_vector = dif_vector.clamp_magnitude(dist)

@@ -2,26 +2,29 @@ from pygame.math import Vector2 as vec2
 import math as mt
 import numpy as np
 import pygame
+import random
 
 
 class Coach:
     def __init__(self, own_players, enemy_players, field, ball, GUI):
-        self.own_players = {}
+        self.own_players = own_players
+        self.enemy_players = enemy_players
+        self.all_players = self.own_players + self.enemy_players
+
+        self.own_players_dict = {}
         for player in own_players:
-            self.own_players[player.player_position] = player
+            self.own_players_dict[player.player_position] = player
 
-        self.enemy_players = {}
-        for player in enemy_players:
-            self.enemy_players[player.player_position] = player
+        self.support_offset = vec2(random.uniform(-1, 1), random.uniform(-1, 1))
+        self.defender_offset = vec2(random.uniform(-1, 1), random.uniform(-1, 1))
 
-        self.all_players = self.own_players | self.enemy_players
         self.field = field
         self.ball = ball
 
         self.GUI = GUI
 
-        self.team = self.own_players["goalie"].team
-        self.other_team = self.enemy_players["goalie"].team
+        self.team = self.own_players[0].team
+        self.other_team = self.enemy_players[0].team
         self.goal_name = "goal_blue" if self.team == "red" else "goal_red"
         top_left, bottom_right = field.boundaries["field"]
         self.lines = self.getLinesInRect(top_left, bottom_right)
@@ -38,14 +41,28 @@ class Coach:
         ]
 
     def act(self):
-        print(self.team)
-        self.closestTo(self.ball, self.own_players)
 
-        if self.field.isInside(self.ball.position, f"{self.other_team}_side"):
-            self.state = "Attacking"
-        elif self.field.isInside(self.ball.position, f"{self.team}_side"):
-            self.state = "Defending"
+        player_list = self.own_players.copy()
 
+        self.players_dict = {}
+
+        goalie = self.own_players_dict["goalie"]
+        self.players_dict["goalie"] = goalie
+        player_list.remove(goalie)
+
+        attacker_right = self.closestTo(self.ball.position, player_list)
+        self.players_dict["attacker_right"] = attacker_right
+        player_list.remove(attacker_right)
+
+        attacker_left = self.closestTo(
+            self.ball.position + self.support_offset, player_list
+        )
+        self.players_dict["attacker_left"] = attacker_left
+        player_list.remove(attacker_left)
+
+        self.players_dict["defender"] = player_list[0]
+
+        self.state = "Attacking"
         if self.state == "Attacking":
             self.attack()
         elif self.state == "Defending":
@@ -54,27 +71,33 @@ class Coach:
             pass
 
     def attack(self):
-        player = self.own_players["attacker_right"]
+        player = self.players_dict["attacker_right"]
         goal_pos = self.field.getCenterPosition(f"goal_{self.other_team}")
         move_vector, look_vector = self.moveBall(player, goal_pos)
         player.act(move_vector, look_vector)
         self.show(player, move_vector)
 
-        player = self.own_players["attacker_left"]
+        player = self.players_dict["attacker_left"]
         avoid_vector = player.avoidEntity(self.all_players, dist=1)
-        move_vector = avoid_vector
-        look_vector = player.pursue(self.ball.position)
+        goto_vector = player.pursue(
+            self.ball.position + vec2(2, 0) + self.support_offset
+        )
+        move_vector = avoid_vector + goto_vector
+        look_vector = move_vector
         player.act(move_vector, look_vector)
         self.show(player, move_vector)
 
-        player = self.own_players["defender"]
+        player = self.players_dict["defender"]
         avoid_vector = player.avoidEntity(self.all_players, dist=1)
-        move_vector = avoid_vector
-        look_vector = player.pursue(self.ball.position)
+        goto_vector = player.pursue(
+            self.ball.position + vec2(-2, 0) + self.defender_offset
+        )
+        move_vector = avoid_vector + goto_vector
+        look_vector = move_vector
         player.act(move_vector, look_vector)
         self.show(player, move_vector)
 
-        player = self.own_players["goalie"]
+        player = self.players_dict["goalie"]
         avoid_vector = player.avoidEntity(self.all_players, dist=1)
         move_vector = avoid_vector
         look_vector = player.pursue(self.ball.position)
@@ -82,28 +105,28 @@ class Coach:
         self.show(player, move_vector)
 
     def defend(self):
-        player = self.own_players["attacker_right"]
+        player = self.players_dict["attacker_right"]
         avoid_vector = player.avoidEntity(self.all_players, dist=1)
         move_vector = avoid_vector
         look_vector = player.pursue(self.ball.position)
         player.act(move_vector, look_vector)
         self.show(player, move_vector)
 
-        player = self.own_players["attacker_left"]
+        player = self.players_dict["attacker_left"]
         avoid_vector = player.avoidEntity(self.all_players, dist=1)
         move_vector = avoid_vector
         look_vector = player.pursue(self.ball.position)
         player.act(move_vector, look_vector)
         self.show(player, move_vector)
 
-        player = self.own_players["defender"]
+        player = self.players_dict["defender"]
         move_vector, look_vector = self.moveBall(
-            player, self.own_players["attacker_right"].position
+            player, self.own_players_dict["attacker_right"].position
         )
         player.act(move_vector, look_vector)
         self.show(player, move_vector)
 
-        player = self.own_players["goalie"]
+        player = self.players_dict["goalie"]
         avoid_vector = player.avoidEntity(self.all_players, dist=1)
         move_vector = avoid_vector
         look_vector = player.pursue(self.ball.position)
@@ -138,12 +161,12 @@ class Coach:
         avoid_vector = self.avoidEntity(self.ball, self.enemy_players, 1)
         avoid_out_vector = self.avoidField(self.ball, 0.5)
         pursue_vector = self.pursue(self.ball, goal_pos)
-        move_vector = avoid_vector + pursue_vector + avoid_out_vector
+        move_vector = avoid_vector + pursue_vector + (2 * avoid_out_vector)
         return move_vector
 
     def avoidEntity(self, own, others, dist):
         avoid_vector = vec2(0.001)
-        for other in others.values():
+        for other in others:
             if own.name != other.name:
                 dif_vector = own.position - other.position
                 dif_vector = dif_vector.clamp_magnitude(dist)
@@ -165,12 +188,11 @@ class Coach:
         pursue_vector = pursue_vector.normalize()
         return pursue_vector
 
-    def closestTo(self, own, others):
+    def closestTo(self, pos, others):
         distances = []
-        for other in others.values():
-            distances.append((own.position - other.position).magnitude())
-
-        print(distances, min(distances))
+        for other in others:
+            distances.append((pos - other.position).magnitude())
+        return others[np.argmin(distances)]
 
     def transformToPlayer(self, player, vector):
         angle = mt.radians(vector.as_polar()[1]) - player.getOrientation()
