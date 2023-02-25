@@ -38,13 +38,9 @@ class Coach:
         ]
 
     def act(self):
-<<<<<<< HEAD
         print(self.team)
         self.closestTo(self.ball, self.own_players)
 
-=======
-        # print(self.team + self.state)
->>>>>>> d71b4db4b75a4ffb36f5fb45e7126a47b6838550
         if self.field.isInside(self.ball.position, f"{self.other_team}_side"):
             self.state = "Attacking"
         elif self.field.isInside(self.ball.position, f"{self.team}_side"):
