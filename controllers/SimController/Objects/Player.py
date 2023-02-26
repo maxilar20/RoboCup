@@ -81,9 +81,9 @@ class Player(Entity):
                 avoid_vector += dif_vector
         return avoid_vector
 
-    def avoidField(self, dist):
+    def avoidField(self, lines, line_vectors, dist):
         avoid_vector = vec2(0.001)
-        for line, vector in zip(self.lines, self.line_vectors):
+        for line, vector in zip(lines, line_vectors):
             dif_vector = vector * lineseg_dist(self.position, line[0], line[1])
             dif_vector = dif_vector.clamp_magnitude(dist)
             dif_vector.scale_to_length(dist - dif_vector.magnitude())
