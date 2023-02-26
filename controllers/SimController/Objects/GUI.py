@@ -53,15 +53,12 @@ class GUI:
 
         self.drawText(time_passed, scores)
 
-        # self.message_flag = False
-
         self.display_message()
 
     def start_display(self, message, time_s=3):
         self.scored_time = pygame.time.get_ticks()
         self.msg_time = time_s * 1000
         self.message_flag = True
-        print(f"setting message flag {self.message_flag}")
         self.message = message
 
     def display_message(self):

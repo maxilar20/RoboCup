@@ -60,6 +60,10 @@ class Player(Entity):
 
         self.sendCommand(move_vector_rotated, rot)
 
+    def kick(self):
+        self.emitter.setChannel(self.channel)
+        self.emitter.send([0.0, 0.0, 0.0, 1.0])
+
     def sendCommand(self, move_vector, rot):
         message = [-move_vector[1], move_vector[0], rot, 0]
         self.emitter.setChannel(self.channel)

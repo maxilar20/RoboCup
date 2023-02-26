@@ -137,37 +137,43 @@ class Coach:
 
     def moveBall(self, player, goal_pos):
         ball_mov_vector = self.ballPlan(goal_pos)
-        dribbling_pos = ball_mov_vector.normalize() * -0.3
+        dribbling_pos = ball_mov_vector.normalize() * -0.2
+        self.show(self.ball, dribbling_pos, [255, 0, 0])
 
         goal_pos = dribbling_pos + self.ball.position
 
         if (goal_pos - player.position).magnitude() > 0.5:
             avoid_vector = self.avoidEntity(player, self.all_players, dist=1)
+            avoid_ball_vector = self.avoidEntity(player, [self.ball], dist=0.5)
             pursue_vector = self.pursue(player, goal_pos)
-            move_vector = avoid_vector + pursue_vector
+            move_vector = avoid_vector + pursue_vector + (5 * avoid_ball_vector)
             look_vector = move_vector
-        elif 0.15 < (goal_pos - player.position).magnitude() < 0.5:
+        elif 0.10 < (goal_pos - player.position).magnitude() < 0.5:
             avoid_vector = self.avoidEntity(player, self.all_players, dist=1)
             pursue_vector = self.pursue(player, goal_pos)
             move_vector = avoid_vector + pursue_vector
             look_vector = self.pursue(player, self.ball.position)
-
         else:
             pursue_vector = self.pursue(player, ball_mov_vector + self.ball.position)
             move_vector = pursue_vector
             look_vector = self.pursue(player, self.ball.position)
+            if self.field.isInside(self.ball.position, f"shooting_{self.other_team}"):
+                player.kick()
 
         return move_vector, look_vector
 
     def ballPlan(self, goal_pos):
-        avoid_vector = self.avoidEntity(self.ball, self.enemy_players, 1)
+        avoid_vector = self.avoidEntity(self.ball, self.enemy_players, 0.5)
 
         avoid_out_vector = vec2(0)
         if not self.field.isInside(self.ball.position, f"penalty_{self.other_team}"):
             avoid_out_vector = self.avoidField(self.ball, 0.5)
 
         pursue_vector = self.pursue(self.ball, goal_pos)
-        move_vector = avoid_vector + pursue_vector + (2 * avoid_out_vector)
+        move_vector = (3 * avoid_vector) + pursue_vector + (2 * avoid_out_vector)
+
+        self.show(self.ball, move_vector)
+
         return move_vector
 
     def avoidEntity(self, own, others, dist):
