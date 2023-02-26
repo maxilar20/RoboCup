@@ -22,7 +22,8 @@ class SimController(Supervisor):
 
         self.emitter = self.getDevice("emitter")
 
-        self.GUI = GUI()
+        gui_scale = 1
+        self.GUI = GUI(window_size=(int(gui_scale * 334), int(gui_scale * 230)))
 
         self.BOUNDARIES = BOUNDARIES
         self.field = Field(BOUNDARIES)
