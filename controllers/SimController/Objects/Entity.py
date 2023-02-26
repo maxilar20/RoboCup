@@ -53,8 +53,15 @@ class Entity:
         else:
             self.position_field.setSFVec3f(pos)
 
-    def resetPosition(self):
-        self.position_field.setSFVec3f([float(i) for i in self.translation.split()])
+    # def resetPosition(self):
+    #     self.position_field.setSFVec3f([float(i) for i in self.translation.split()])
+
+    def resetPosition(self, scene=None):
+        # Because reset can be called for other scenarios as well.
+        if scene and scene[0] == 'penality':
+            self.position_field.setSFVec3f([*scene[1]])
+        else:
+            self.position_field.setSFVec3f([float(i) for i in self.translation.split()])
 
     def resetOrientation(self):
         self.orientation_field.setSFRotation([float(i) for i in self.rotation.split()])
