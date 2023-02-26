@@ -4,8 +4,8 @@ EXTERNPROTO "https://raw.githubusercontent.com/cyberbotics/webots/R2023a/project
 EXTERNPROTO "https://raw.githubusercontent.com/cyberbotics/webots/R2023a/projects/objects/backgrounds/protos/TexturedBackgroundLight.proto"
 IMPORTABLE EXTERNPROTO "../protos/Nao.proto"
 EXTERNPROTO "https://raw.githubusercontent.com/cyberbotics/webots/R2023a/projects/objects/robotstadium/protos/RobotstadiumSoccerField.proto"
-IMPORTABLE EXTERNPROTO "https://raw.githubusercontent.com/cyberbotics/webots/R2023a/projects/objects/balls/protos/RobocupSoccerBall.proto"
-IMPORTABLE EXTERNPROTO "https://raw.githubusercontent.com/cyberbotics/webots/R2023a/projects/objects/robotstadium/protos/RobotstadiumGoal.proto"
+IMPORTABLE EXTERNPROTO "../protos/RobocupSoccerBall.proto"
+IMPORTABLE EXTERNPROTO "../protos/RobotstadiumGoal.proto"
 
 WorldInfo {
 }

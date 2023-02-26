@@ -15,8 +15,10 @@ class Coach:
         for player in own_players:
             self.own_players_dict[player.player_position] = player
 
-        self.support_offset = vec2(random.uniform(-1, 1), random.uniform(-1, 1))
-        self.defender_offset = vec2(random.uniform(-1, 1), random.uniform(-1, 1))
+        self.support_offset = vec2(random.uniform(-0.5, 0.5), random.uniform(-0.5, 0.5))
+        self.defender_offset = vec2(
+            random.uniform(-0.5, 0.5), random.uniform(-0.5, 0.5)
+        )
 
         self.field = field
         self.ball = ball
