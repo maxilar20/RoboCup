@@ -57,26 +57,28 @@ class GUI:
 
         self.display_message()
 
-    def start_display(self, message):
+    def start_display(self, message, time_s=3):
         self.scored_time = pygame.time.get_ticks()
+        self.msg_time = time_s * 1000
         self.message_flag = True
         print(f"setting message flag {self.message_flag}")
         self.message = message
 
     def display_message(self):
         if self.message_flag:
-            if pygame.time.get_ticks() - self.scored_time < 5000:
+            if pygame.time.get_ticks() - self.scored_time < self.msg_time:
                 scored_text = self.font.render(self.message, True, (0, 0, 0))
 
-                scored_rect = scored_text.get_rect(center=(self.window_size[0]/2, 50))
-                scored_background = pygame.Surface((scored_rect.width + 20, scored_rect.height + 20))
+                scored_rect = scored_text.get_rect(center=(self.window_size[0] / 2, 50))
+                scored_background = pygame.Surface(
+                    (scored_rect.width + 20, scored_rect.height + 20)
+                )
                 scored_background.fill((255, 255, 255))
                 scored_background.blit(scored_text, (10, 10))
-                scored_rect = scored_background.get_rect(center=(self.window_size[0]/2, 30))
+                scored_rect = scored_background.get_rect(
+                    center=(self.window_size[0] / 2, 30)
+                )
                 self.screen.blit(scored_background, scored_rect)
-
-                # scored_rect = scored_text.get_rect(center=(self.window_size[0]/2, 20))
-                # self.screen.blit(scored_text, scored_rect)
             else:
                 self.message_flag = False
 
@@ -131,9 +133,10 @@ class GUI:
         text_rect = text.get_rect(center=background.get_rect().center)
         # text_rect.move_ip(text_padding, text_padding)
         background.blit(text, text_rect)
-        background_rect = background.get_rect(midbottom=(self.window_size[0] / 2, self.window_size[1]))
+        background_rect = background.get_rect(
+            midbottom=(self.window_size[0] / 2, self.window_size[1])
+        )
         self.screen.blit(background, background_rect)
-
 
         # text = self.font.render(
         #     score_text + time_passed, True, (0, 0, 0), (255, 255, 255)
