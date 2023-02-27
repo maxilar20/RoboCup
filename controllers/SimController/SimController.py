@@ -12,7 +12,7 @@ class SimController(Supervisor):
     def __init__(self, BOUNDARIES, max_game_time_mins=15):
         super().__init__()
 
-        self.start_game_time_seconds = time.time()
+        self.time_passed = 0
         self.max_game_time_secs = max_game_time_mins * 60
 
         self.red_score = 0
@@ -48,9 +48,6 @@ class SimController(Supervisor):
 
         self.latest_player = None
 
-        # self.red_coach.state = "Penalty own"
-        # self.blue_coach.state = "Penalty other"
-
     def detect_closest(self, player):
         closest = None
         closest_dist = 99
@@ -64,7 +61,8 @@ class SimController(Supervisor):
 
     def run(self):
         # SIMULATION
-        simcontroller.get_time()
+        self.time_passed += self.timeStep / 1000
+        self.time_passed_text = time.strftime("%M:%S", time.gmtime(self.time_passed))
 
         if simcontroller.time_up():
             simcontroller.end_simulation()
@@ -171,8 +169,6 @@ class SimController(Supervisor):
 
         self.red_coach.state = "Attacking"
         self.blue_coach.state = "Attacking"
-        # self.red_coach.state = "Penalty own"
-        # self.blue_coach.state = "Penalty other"
 
     def penalty_position(self, team):
         if team == "red":
@@ -205,10 +201,6 @@ class SimController(Supervisor):
 
     def ball_out(self):
         return not self.field.isInside(self.ball.getPosition(), "field")
-
-    def get_time(self):
-        self.time_passed = time.time() - self.start_game_time_seconds
-        self.time_passed_text = time.strftime("%M:%S", time.gmtime(self.time_passed))
 
     def time_up(self):
         return self.time_passed > self.max_game_time_secs
