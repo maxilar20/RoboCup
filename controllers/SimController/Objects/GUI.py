@@ -11,7 +11,7 @@ class GUI:
         pygame.init()
 
         self.window_size = window_size
-        self.screen = pygame.display.set_mode(self.window_size)
+        self.screen = pygame.display.set_mode(self.window_size, pygame.RESIZABLE)
         pygame.display.set_caption("Robocup")
         icon = pygame.image.load("Objects/icon.png")
         pygame.display.set_icon(icon)
@@ -39,6 +39,11 @@ class GUI:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 running = False
+            if event.type == pygame.VIDEORESIZE:
+                w = int(event.w)
+                h = int(w * 0.68)
+                self.screen = pygame.display.set_mode((w, h), pygame.RESIZABLE)
+                self.window_size = (w, h)
 
         self.screen.fill((0, 120, 0))
 
