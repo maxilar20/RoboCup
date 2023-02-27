@@ -108,7 +108,7 @@ class SimController(Supervisor):
                             self.penalty_position("blue")
                             self.GUI.start_display("Blue team gets penalty")
                         else:
-                            self.blue_coach.freeze(self.time_passed, 5)
+                            self.red_coach.freeze(self.time_passed, 5)
                 else:
                     self.GUI.start_display("Fell by itself", time_s=1)
 
@@ -197,12 +197,10 @@ class SimController(Supervisor):
     def check_goal(self):
         if self.field.isInside(self.ball.getPosition(), "goal_red"):
             self.blue_score += 1
-            print("Blue Team Scored")
             self.GUI.start_display("Blue team has scored")
             return True
         elif self.field.isInside(self.ball.getPosition(), "goal_blue"):
             self.red_score += 1
-            print("Red Team Scored")
             self.GUI.start_display("Red team has scored")
             return True
         else:

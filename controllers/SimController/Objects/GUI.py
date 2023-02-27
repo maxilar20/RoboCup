@@ -65,6 +65,7 @@ class GUI:
         self.msg_time = time_s * 1000
         self.message_flag = True
         self.message = message
+        print(message)
 
     def display_message(self):
         if self.message_flag:
