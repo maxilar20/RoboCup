@@ -87,7 +87,7 @@ class Player(Entity):
 
         return move_vector, look_vector
 
-    def avoidEntity(self, others, dist):
+    def avoidEntity(self, others, dist=1):
         avoid_vector = vec2(0.001)
         for other in others:
             if self.name != other.name:

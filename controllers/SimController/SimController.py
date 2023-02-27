@@ -167,10 +167,17 @@ class SimController(Supervisor):
             player.resetPhysics()
         self.latest_player = None
 
+        self.red_coach.state = "Attacking"
+        self.blue_coach.state = "Attacking"
+
     def penalty_position(self, team):
         if team == "red":
+            self.red_coach.state = "Penalty own"
+            self.blue_coach.state = "Penalty other"
             self.ball.setPosition([3.2, -0.1, 0.3])
         elif team == "blue":
+            self.red_coach.state = "Penalty other"
+            self.blue_coach.state = "Penalty own"
             self.ball.setPosition([-3.2, -0.1, 0.3])
 
         for player in self.players:

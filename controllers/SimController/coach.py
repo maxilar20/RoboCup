@@ -94,11 +94,14 @@ class Coach:
 
         self.players_dict["defender"] = player_list[0]
 
-        self.state = "Attacking"
         if self.state == "Attacking":
             self.attack()
         elif self.state == "Defending":
             self.defend()
+        elif self.state == "Penalty other":
+            self.penalty_other()
+        elif self.state == "Penalty own":
+            self.penalty_own()
         elif self.state == "Kick Off" or self.state == "Frozen":
             pass
 
@@ -144,6 +147,66 @@ class Coach:
 
     def defend(self):
         pass
+
+    def penalty_own(self):
+        player = self.players_dict["attacker_right"]
+        goal_pos = self.field.getCenterPosition(f"goal_{self.other_team}")
+        move_vector, look_vector = self.moveBall(player, goal_pos)
+        player.act(move_vector, look_vector)
+        self.show(player, move_vector)
+
+        player = self.players_dict["attacker_left"]
+        move_vector = player.avoidEntity(self.all_players)
+        look_vector = self.ball.position - player.position
+        player.act(move_vector, look_vector)
+        self.show(player, move_vector)
+
+        player = self.players_dict["defender"]
+        move_vector = player.avoidEntity(self.all_players)
+        look_vector = self.ball.position - player.position
+        player.act(move_vector, look_vector)
+        self.show(player, move_vector)
+
+        player = self.players_dict["goalie"]
+        move_vector, look_vector = player.moveTo(
+            self.goalie_position,
+            self.all_players,
+            self.ball,
+            self.lines,
+            self.line_vectors,
+        )
+        player.act(move_vector, look_vector)
+        self.show(player, move_vector)
+
+    def penalty_other(self):
+        player = self.players_dict["attacker_right"]
+        move_vector = player.avoidEntity(self.all_players)
+        look_vector = self.ball.position - player.position
+        player.act(move_vector, look_vector)
+        self.show(player, move_vector)
+
+        player = self.players_dict["attacker_left"]
+        move_vector = player.avoidEntity(self.all_players)
+        look_vector = self.ball.position - player.position
+        player.act(move_vector, look_vector)
+        self.show(player, move_vector)
+
+        player = self.players_dict["defender"]
+        move_vector = player.avoidEntity(self.all_players)
+        look_vector = self.ball.position - player.position
+        player.act(move_vector, look_vector)
+        self.show(player, move_vector)
+
+        player = self.players_dict["goalie"]
+        move_vector, look_vector = player.moveTo(
+            self.goalie_position,
+            self.all_players,
+            self.ball,
+            self.lines,
+            self.line_vectors,
+        )
+        player.act(move_vector, look_vector)
+        self.show(player, move_vector)
 
     def moveBall(self, player, goal_pos):
         ball_mov_vector = self.ballPlan(goal_pos)
