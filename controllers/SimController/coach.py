@@ -52,6 +52,18 @@ class Coach:
 
     def act(self):
 
+        own_goal_pos = self.field.getCenterPosition(f"goal_{self.team}")
+        other_goal_pos = self.field.getCenterPosition(f"goal_{self.other_team}")
+        self.defend_position = own_goal_pos + (
+            0.5 * (self.ball.position - own_goal_pos)
+        )
+        self.goalie_position = own_goal_pos + (
+            0.1 * (self.ball.position - own_goal_pos)
+        )
+        self.support_position = other_goal_pos + (
+            0.5 * (self.ball.position - other_goal_pos)
+        )
+
         player_list = self.own_players.copy()
 
         self.players_dict = {}
@@ -64,14 +76,10 @@ class Coach:
         self.players_dict["attacker_right"] = attacker_right
         player_list.remove(attacker_right)
 
-        attacker_left = self.closestTo(self.ball.position + vec2(2, 0), player_list)
+        attacker_left = self.closestTo(self.support_position, player_list)
         self.players_dict["attacker_left"] = attacker_left
         player_list.remove(attacker_left)
 
-        own_goal_pos = self.field.getCenterPosition(f"goal_{self.team}")
-        self.defend_position = own_goal_pos + (
-            0.5 * (self.ball.position - own_goal_pos)
-        )
         self.players_dict["defender"] = player_list[0]
 
         self.state = "Attacking"
@@ -90,13 +98,13 @@ class Coach:
         self.show(player, move_vector)
 
         player = self.players_dict["attacker_left"]
-        avoid_vector = player.avoidEntity(self.all_players, dist=1)
-        avoid_out = player.avoidField(self.lines, self.line_vectors, 0.5)
-        goto_vector = player.pursue(
-            self.ball.position + vec2(2, 0) + self.support_offset
+        move_vector, look_vector = player.moveTo(
+            self.support_position,
+            self.all_players,
+            self.ball,
+            self.lines,
+            self.line_vectors,
         )
-        move_vector = avoid_vector + goto_vector + (5 * avoid_out)
-        look_vector = move_vector
         player.act(move_vector, look_vector)
         self.show(player, move_vector)
 
@@ -108,14 +116,17 @@ class Coach:
             self.lines,
             self.line_vectors,
         )
-
         player.act(move_vector, look_vector)
         self.show(player, move_vector)
 
         player = self.players_dict["goalie"]
-        avoid_vector = player.avoidEntity(self.all_players, dist=1)
-        move_vector = avoid_vector
-        look_vector = player.pursue(self.ball.position)
+        move_vector, look_vector = player.moveTo(
+            self.goalie_position,
+            self.all_players,
+            self.ball,
+            self.lines,
+            self.line_vectors,
+        )
         player.act(move_vector, look_vector)
         self.show(player, move_vector)
 
