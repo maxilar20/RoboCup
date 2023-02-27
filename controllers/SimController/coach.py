@@ -36,6 +36,7 @@ class Coach:
         self.team = self.own_players[0].team
         self.other_team = self.enemy_players[0].team
         self.goal_name = "goal_blue" if self.team == "red" else "goal_red"
+        self.dir = 1 if self.team == "red" else -1
         top_left, bottom_right = field.boundaries["field"]
         self.lines = self.getLinesInRect(top_left, bottom_right)
         self.line_vectors = [vec2(0, -1), vec2(1, 0), vec2(0, 1), vec2(-1, 0)]
@@ -60,9 +61,20 @@ class Coach:
         self.goalie_position = own_goal_pos + (
             0.1 * (self.ball.position - own_goal_pos)
         )
-        self.support_position = other_goal_pos + (
-            0.5 * (self.ball.position - other_goal_pos)
+
+        if self.ball.position[1] > 0:
+            rotation_angle = -45
+        else:
+            rotation_angle = 45
+        self.support_position = (
+            self.ball.position
+            + (other_goal_pos - self.ball.position)
+            .normalize()
+            .rotate(self.dir * rotation_angle)
+            * 1.5
         )
+
+        self.showPoint(self.support_position)
 
         player_list = self.own_players.copy()
 
@@ -216,6 +228,9 @@ class Coach:
             self.GUI.mapToGUI(player.position + goal),
             1,
         )
+
+    def showPoint(self, pos, color=[255, 0, 0]):
+        pygame.draw.circle(self.GUI.screen, color, self.GUI.mapToGUI(pos), 3)
 
 
 def lineseg_dist(p, a, b):
