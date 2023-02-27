@@ -3,6 +3,7 @@ from pygame import math
 import numpy as np
 import ctypes
 from ctypes import wintypes
+import time
 
 
 class GUI:
@@ -33,9 +34,12 @@ class GUI:
 
         self.font = pygame.font.Font("freesansbold.ttf", 20)
 
-        self.message_flag = False
+        self.messages = []
 
     def show(self, debug, time_passed, scores, field, ball, players, buttons):
+        self.time_passed = time_passed
+        time_passed_text = time.strftime("%M:%S", time.gmtime(time_passed))
+
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 running = False
@@ -56,34 +60,33 @@ class GUI:
         for button in buttons:
             self.showButton(button)
 
-        self.drawText(time_passed, scores)
+        self.drawText(time_passed_text, scores)
 
         self.display_message()
 
     def start_display(self, message, time_s=3):
-        self.scored_time = pygame.time.get_ticks()
-        self.msg_time = time_s * 1000
-        self.message_flag = True
-        self.message = message
+        self.messages.append((message, self.time_passed + time_s))
         print(message)
 
     def display_message(self):
-        if self.message_flag:
-            if pygame.time.get_ticks() - self.scored_time < self.msg_time:
-                scored_text = self.font.render(self.message, True, (0, 0, 0))
+        y = 0
+        for idx, message in enumerate(self.messages):
+            y += 30
+            scored_text = self.font.render(message[0], True, (0, 0, 0))
 
-                scored_rect = scored_text.get_rect(center=(self.window_size[0] / 2, 50))
-                scored_background = pygame.Surface(
-                    (scored_rect.width + 20, scored_rect.height + 20)
-                )
-                scored_background.fill((255, 255, 255))
-                scored_background.blit(scored_text, (10, 10))
-                scored_rect = scored_background.get_rect(
-                    center=(self.window_size[0] / 2, 30)
-                )
-                self.screen.blit(scored_background, scored_rect)
-            else:
-                self.message_flag = False
+            scored_rect = scored_text.get_rect(center=(self.window_size[0] / 2, 50))
+            scored_background = pygame.Surface(
+                (scored_rect.width + 10, scored_rect.height + 10)
+            )
+            scored_background.fill((255, 255, 255))
+            scored_background.blit(scored_text, (10, 10))
+            scored_rect = scored_background.get_rect(
+                center=(self.window_size[0] / 2, y)
+            )
+            self.screen.blit(scored_background, scored_rect)
+
+            if self.time_passed > message[1]:
+                self.messages.pop(idx)
 
     def flip(self):
         pygame.display.flip()
