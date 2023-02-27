@@ -62,7 +62,6 @@ class SimController(Supervisor):
     def run(self):
         # SIMULATION
         self.time_passed += self.timeStep / 1000
-        self.time_passed_text = time.strftime("%M:%S", time.gmtime(self.time_passed))
 
         # Time up check
         if simcontroller.time_up():
@@ -117,7 +116,7 @@ class SimController(Supervisor):
         scores = (self.red_score, self.blue_score)
         self.GUI.show(
             self.debug,
-            self.time_passed_text,
+            self.time_passed,
             scores,
             self.field,
             self.ball,
