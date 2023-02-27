@@ -75,6 +75,18 @@ class Player(Entity):
         yaw = angles.as_euler("zxy", degrees=True)[2]
         return yaw > 70 or yaw < -70
 
+    def moveTo(self, goal, entities_avoid, entity_look, lines, line_vectors):
+        avoid_vector = self.avoidEntity(entities_avoid, dist=1)
+        avoid_out = self.avoidField(lines, line_vectors, 0.5)
+        goto_vector = self.pursue(goal)
+        move_vector = avoid_vector + goto_vector + (5 * avoid_out)
+        if (goal - self.position).magnitude() < 0.5:
+            look_vector = entity_look.position - self.position
+        else:
+            look_vector = move_vector
+
+        return move_vector, look_vector
+
     def avoidEntity(self, others, dist):
         avoid_vector = vec2(0.001)
         for other in others:

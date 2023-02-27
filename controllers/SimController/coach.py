@@ -78,13 +78,13 @@ class Coach:
         self.show(player, move_vector)
 
         player = self.players_dict["attacker_left"]
-        avoid_vector = player.avoidEntity(self.all_players, dist=1)
-        avoid_out = player.avoidField(self.lines, self.line_vectors, 0.5)
-        goto_vector = player.pursue(
-            self.ball.position + vec2(2, 0) + self.support_offset
+        move_vector, look_vector = player.moveTo(
+            (self.ball.position + vec2(2, 0) + self.support_offset),
+            self.all_players,
+            self.ball,
+            self.lines,
+            self.line_vectors,
         )
-        move_vector = avoid_vector + goto_vector + (5 * avoid_out)
-        look_vector = move_vector
         player.act(move_vector, look_vector)
         self.show(player, move_vector)
 
