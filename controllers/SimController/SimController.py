@@ -22,8 +22,7 @@ class SimController(Supervisor):
 
         self.emitter = self.getDevice("emitter")
 
-        gui_scale = 2
-        self.GUI = GUI(window_size=(int(gui_scale * 334), int(gui_scale * 230)))
+        self.GUI = GUI()
 
         self.BOUNDARIES = BOUNDARIES
         self.field = Field(BOUNDARIES)
@@ -48,6 +47,9 @@ class SimController(Supervisor):
         )
 
         self.latest_player = None
+
+        # self.red_coach.state = "Penalty own"
+        # self.blue_coach.state = "Penalty other"
 
     def detect_closest(self, player):
         closest = None
@@ -169,6 +171,8 @@ class SimController(Supervisor):
 
         self.red_coach.state = "Attacking"
         self.blue_coach.state = "Attacking"
+        # self.red_coach.state = "Penalty own"
+        # self.blue_coach.state = "Penalty other"
 
     def penalty_position(self, team):
         if team == "red":
