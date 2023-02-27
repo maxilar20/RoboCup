@@ -160,9 +160,11 @@ class SimController(Supervisor):
 
     def kickoff_position(self):
         self.ball.resetPosition()
+        self.ball.resetPhysics()
         for player in self.players:
             player.resetPosition()
             player.resetOrientation()
+            player.resetPhysics()
         self.latest_player = None
 
     def penalty_position(self, team):
@@ -175,33 +177,6 @@ class SimController(Supervisor):
             player.setPosition(player.penalty_pos)
             player.resetOrientation()
         self.latest_player = None
-
-    # def penalty_position(self, team):
-    #     # Ball
-    #     penalty_pos_ball_red = ('penality', (3.2, -0.1, 0.3))
-    #     penalty_pos_ball_blue = ('penality', (-3.2, -0.1, 0.3))
-
-    #     # Player(red4 and blue4)
-    #     penalty_pos_player_red = "2.6 -0.00166535 0.289525"
-    #     penalty_pos_player_blue = "-2.6 -0.00166535 0.289525"
-
-    #     if team == 'Red':
-    #         penalty_ball_pos = penalty_pos_ball_red
-    #         penalty_pos_player = penalty_pos_player_red
-    #         player_name = 'red_4'
-    #     else:
-    #         penalty_ball_pos = penalty_pos_ball_blue
-    #         penalty_pos_player = penalty_pos_player_blue
-    #         player_name = 'blue_4'
-
-    #     self.ball.resetPosition(penalty_ball_pos)
-
-    #     for player in self.players:
-    #         if player.name == player_name:
-    #             player.penalty_pos = penalty_pos_player
-    #         player.setPosition(player.penalty_pos)
-    #         player.resetOrientation()
-    #     self.latest_player = None
 
     def check_goal(self):
         if self.field.isInside(self.ball.getPosition(), "goal_red"):
