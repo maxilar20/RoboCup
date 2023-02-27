@@ -43,16 +43,11 @@ class Coach:
 
         self.state = "Attacking"
 
-    def getLinesInRect(self, top_left, bottom_right):
-        return [
-            (top_left, top_left.reflect((-1, 0))),
-            (top_left, top_left.reflect((0, -1))),
-            (bottom_right, bottom_right.reflect((-1, 0))),
-            (bottom_right, bottom_right.reflect((0, -1))),
-        ]
+    def freeze(self, current_time, time):
+        self.state = "Freeze"
+        self.freeze_end_time = current_time + time
 
-    def act(self):
-
+    def act(self, current_time):
         own_goal_pos = self.field.getCenterPosition(f"goal_{self.team}")
         other_goal_pos = self.field.getCenterPosition(f"goal_{self.other_team}")
         self.defend_position = own_goal_pos + (
@@ -102,6 +97,9 @@ class Coach:
             self.penalty_other()
         elif self.state == "Penalty own":
             self.penalty_own()
+        elif self.state == "Freeze":
+            if current_time > self.freeze_end_time:
+                self.state = "Attacking"
         elif self.state == "Kick Off" or self.state == "Frozen":
             pass
 
@@ -302,6 +300,14 @@ class Coach:
 
     def showPoint(self, pos, color=[255, 0, 0]):
         pygame.draw.circle(self.GUI.screen, color, self.GUI.mapToGUI(pos), 3)
+
+    def getLinesInRect(self, top_left, bottom_right):
+        return [
+            (top_left, top_left.reflect((-1, 0))),
+            (top_left, top_left.reflect((0, -1))),
+            (bottom_right, bottom_right.reflect((-1, 0))),
+            (bottom_right, bottom_right.reflect((0, -1))),
+        ]
 
 
 def lineseg_dist(p, a, b):

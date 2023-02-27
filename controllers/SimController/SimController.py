@@ -64,12 +64,15 @@ class SimController(Supervisor):
         self.time_passed += self.timeStep / 1000
         self.time_passed_text = time.strftime("%M:%S", time.gmtime(self.time_passed))
 
+        # Time up check
         if simcontroller.time_up():
             simcontroller.end_simulation()
 
+        # Goal check
         if simcontroller.check_goal():
             simcontroller.kickoff_position()
 
+        # Ball out check
         closest, closest_dist = self.detect_closest(self.ball)
         if closest_dist < 0.4:
             self.latest_player = closest
@@ -77,8 +80,12 @@ class SimController(Supervisor):
         if simcontroller.ball_out():
             if self.latest_player:
                 self.GUI.start_display(f"Ball Out by {self.latest_player.name}")
-            simcontroller.kickoff_position()
+                if self.latest_player.team == "red":
+                    self.red_coach.freeze(self.time_passed, 5)
+                elif self.latest_player.team == "red":
+                    self.blue_coach.freeze(self.time_passed, 5)
 
+        # Penalty check
         for player in self.players:
             if player.hasFallen():
                 player.resetHeight()
@@ -90,16 +97,18 @@ class SimController(Supervisor):
                     msg = f"Player {closest_player.name} made a fault to {player.name}"
                     self.GUI.start_display(msg)
 
-                    if player.team == "red" and self.field.isInside(
-                        player.position, "penalty_blue"
-                    ):
-                        self.penalty_position("red")
-                        self.GUI.start_display("Red team gets penalty")
-                    elif player.team == "blue" and self.field.isInside(
-                        player.position, "penalty_red"
-                    ):
-                        self.penalty_position("blue")
-                        self.GUI.start_display("Blue team gets penalty")
+                    if player.team == "red":
+                        if self.field.isInside(player.position, "penalty_blue"):
+                            self.penalty_position("red")
+                            self.GUI.start_display("Red team gets penalty")
+                        else:
+                            self.blue_coach.freeze(self.time_passed, 5)
+                    elif player.team == "blue":
+                        if self.field.isInside(player.position, "penalty_red"):
+                            self.penalty_position("blue")
+                            self.GUI.start_display("Blue team gets penalty")
+                        else:
+                            self.blue_coach.freeze(self.time_passed, 5)
                 else:
                     self.GUI.start_display("Fell by itself", time_s=1)
 
@@ -121,8 +130,8 @@ class SimController(Supervisor):
             player.getPosition()
         self.ball.getPosition()
 
-        self.red_coach.act()
-        self.blue_coach.act()
+        self.red_coach.act(self.time_passed)
+        self.blue_coach.act(self.time_passed)
 
         self.GUI.flip()
 
