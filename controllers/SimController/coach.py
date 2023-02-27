@@ -43,16 +43,11 @@ class Coach:
 
         self.state = "Attacking"
 
-    def getLinesInRect(self, top_left, bottom_right):
-        return [
-            (top_left, top_left.reflect((-1, 0))),
-            (top_left, top_left.reflect((0, -1))),
-            (bottom_right, bottom_right.reflect((-1, 0))),
-            (bottom_right, bottom_right.reflect((0, -1))),
-        ]
+    def freeze(self, current_time, time):
+        self.state = "Freeze"
+        self.freeze_end_time = current_time + time
 
-    def act(self):
-
+    def act(self, current_time):
         own_goal_pos = self.field.getCenterPosition(f"goal_{self.team}")
         other_goal_pos = self.field.getCenterPosition(f"goal_{self.other_team}")
         self.defend_position = own_goal_pos + (
@@ -102,6 +97,9 @@ class Coach:
             self.penalty_other()
         elif self.state == "Penalty own":
             self.penalty_own()
+        elif self.state == "Freeze":
+            if current_time > self.freeze_end_time:
+                self.state = "Attacking"
         elif self.state == "Kick Off" or self.state == "Frozen":
             pass
 
@@ -210,29 +208,37 @@ class Coach:
 
     def moveBall(self, player, goal_pos):
         ball_mov_vector = self.ballPlan(goal_pos)
-        dribbling_pos = ball_mov_vector.normalize() * -0.2
-        self.show(self.ball, dribbling_pos, [255, 0, 0])
 
-        goal_pos = dribbling_pos + self.ball.position
+        ball_pos = self.ball.position
+        dist_to_ball = (
+            (player.position - ball_pos)
+            .project(ball_mov_vector)
+            .rotate(ball_mov_vector.angle_to(vec2((1, 0))))
+        )[0]
 
-        if (goal_pos - player.position).magnitude() > 0.5:
-            avoid_vector = self.avoidEntity(player, self.all_players, dist=1)
-            avoid_ball_vector = self.avoidEntity(player, [self.ball], dist=0.5)
-            pursue_vector = self.pursue(player, goal_pos)
-            move_vector = avoid_vector + pursue_vector + (5 * avoid_ball_vector)
-            look_vector = move_vector
-        elif 0.10 < (goal_pos - player.position).magnitude() < 0.5:
-            avoid_vector = self.avoidEntity(player, self.all_players, dist=1)
-            pursue_vector = self.pursue(player, goal_pos)
-            move_vector = avoid_vector + pursue_vector
-            look_vector = self.pursue(player, self.ball.position)
-        else:
-            pursue_vector = self.pursue(player, ball_mov_vector + self.ball.position)
-            move_vector = pursue_vector
-            look_vector = self.pursue(player, self.ball.position)
-            if self.field.isInside(self.ball.position, f"shooting_{self.other_team}"):
+        if dist_to_ball < -0.15:
+            dribbling_pos = ball_mov_vector.normalize() * dist_to_ball
+            goal_pos = dribbling_pos + self.ball.position
+
+            move_vector = player.pursue(goal_pos)
+            move_vector += player.pursue(ball_pos)
+            look_vector = ball_pos - player.position
+            if (
+                self.field.isInside(ball_pos, f"shooting_{self.other_team}")
+                and (ball_pos - player.position).magnitude() < 0.2
+            ):
                 player.kick()
+        else:
+            dribbling_pos = ball_mov_vector.normalize() * -0.3
+            goal_pos = dribbling_pos + self.ball.position
 
+            move_vector = player.pursue(goal_pos)
+            move_vector += 10 * player.avoidEntity([self.ball], 0.4)
+            look_vector = player.pursue(goal_pos)
+
+        move_vector += player.avoidEntity(self.all_players, 0.75)
+
+        self.show(self.ball, dribbling_pos, [255, 0, 0])
         return move_vector, look_vector
 
     def ballPlan(self, goal_pos):
@@ -294,6 +300,14 @@ class Coach:
 
     def showPoint(self, pos, color=[255, 0, 0]):
         pygame.draw.circle(self.GUI.screen, color, self.GUI.mapToGUI(pos), 3)
+
+    def getLinesInRect(self, top_left, bottom_right):
+        return [
+            (top_left, top_left.reflect((-1, 0))),
+            (top_left, top_left.reflect((0, -1))),
+            (bottom_right, bottom_right.reflect((-1, 0))),
+            (bottom_right, bottom_right.reflect((0, -1))),
+        ]
 
 
 def lineseg_dist(p, a, b):
