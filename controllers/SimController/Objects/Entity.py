@@ -7,8 +7,10 @@ class Entity:
     ):
         self.robot = robot
         self.name = name
+
         self.DEF = DEF
         self.translation = translation
+
         self.rotation = rotation
         self.custom_args = custom_args
         self.circle_radius = circle_radius
@@ -19,6 +21,7 @@ class Entity:
 
         self.node = self.robot.getFromDef(f"{self.name}")
         self.position_field = self.node.getField("translation")
+
         self.orientation_field = self.node.getField("rotation")
 
     def spawn(self):
@@ -38,8 +41,35 @@ class Entity:
         else:
             return (2 * 3.1415) - self.orientation_field.getSFVec3f()[3]
 
+    def getGyro(self):
+        return self.orientation_field.getSFRotation()
+
     def isInside(self, point):
         return point.distance_squared_to(self.position) < (self.circle_radius_sq)
 
-    def reset(self):
-        self.position_field.setSFVec3f([float(i) for i in self.translation.split()])
+    def setPosition(self, pos):
+        if type(pos) == str:
+            self.position_field.setSFVec3f([float(i) for i in pos.split()])
+        else:
+            self.position_field.setSFVec3f(pos)
+
+    # def resetPosition(self):
+    #     self.position_field.setSFVec3f([float(i) for i in self.translation.split()])
+
+    def resetPosition(self, scene=None):
+        # Because reset can be called for other scenarios as well.
+        if scene and scene[0] == 'penality':
+            self.position_field.setSFVec3f([*scene[1]])
+        else:
+            self.position_field.setSFVec3f([float(i) for i in self.translation.split()])
+
+    def resetOrientation(self):
+        self.orientation_field.setSFRotation([float(i) for i in self.rotation.split()])
+
+    def resetHeight(self):
+        position = list(self.getPosition())
+        position.append(0.32)
+        self.position_field.setSFVec3f(position)
+
+    def resetPhysics(self):
+        self.node.resetPhysics()

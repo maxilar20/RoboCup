@@ -1,5 +1,6 @@
 from controller import Supervisor
-from objects import Player, Ball, Field, GUI, Button
+from Objects import Player, Ball, Field, GUI, Button
+from coach import Coach
 from config import GAME_TIME, PLAYERS_DEF, BOUNDARIES
 
 import pygame
@@ -11,7 +12,7 @@ class SimController(Supervisor):
     def __init__(self, BOUNDARIES, max_game_time_mins=15):
         super().__init__()
 
-        self.start_game_time_seconds = time.time()
+        self.time_passed = 0
         self.max_game_time_secs = max_game_time_mins * 60
 
         self.red_score = 0
@@ -33,53 +34,105 @@ class SimController(Supervisor):
         self.ball = Ball(self)
 
         self.players = [
-            Player(self, **player, emitter=self.emitter, ball=self.ball)
-            for player in PLAYERS_DEF
+            Player(self, **player, emitter=self.emitter) for player in PLAYERS_DEF
         ]
+
+        self.red_team = [player for player in self.players if player.team == "red"]
+        self.blue_team = [player for player in self.players if player.team == "blue"]
+        self.red_coach = Coach(
+            self.red_team, self.blue_team, self.field, self.ball, self.GUI
+        )
+        self.blue_coach = Coach(
+            self.blue_team, self.red_team, self.field, self.ball, self.GUI
+        )
+
+        self.latest_player = None
+
+    def detect_closest(self, player):
+        closest = None
+        closest_dist = 99
+        for other_player in self.players:
+            if player != other_player:
+                dist = (player.position - other_player.position).magnitude()
+                if dist < closest_dist:
+                    closest = other_player
+                    closest_dist = dist
+        return closest, closest_dist
 
     def run(self):
         # SIMULATION
-        simcontroller.get_time()
+        self.time_passed += self.timeStep / 1000
 
+        # Time up check
         if simcontroller.time_up():
             simcontroller.end_simulation()
 
+        # Goal check
         if simcontroller.check_goal():
-            simcontroller.reset_simulation()
+            simcontroller.kickoff_position()
+
+        # Ball out check
+        closest, closest_dist = self.detect_closest(self.ball)
+        if closest_dist < 0.4:
+            self.latest_player = closest
 
         if simcontroller.ball_out():
-            print("Ball Out")
-            simcontroller.reset_simulation()
+            if self.latest_player:
+                self.GUI.start_display(f"Ball Out by {self.latest_player.name}")
+                if self.latest_player.team == "red":
+                    self.red_coach.freeze(self.time_passed, 5)
+                elif self.latest_player.team == "red":
+                    self.blue_coach.freeze(self.time_passed, 5)
 
-        # TODO: Check if there's been a fault
-
-        # Update
+        # Penalty check
         for player in self.players:
-            player.getPosition()
+            if player.hasFallen():
+                player.resetHeight()
+                player.resetOrientation()
+                player.resetPhysics()
 
-        for player in self.players:
-            player.senseDistances(self.field, self.players)
+                closest_player, closest_dist = self.detect_closest(player)
+                if closest_dist < 0.6 and player.team != closest_player.team:
+                    msg = f"Player {closest_player.name} made a fault to {player.name}"
+                    self.GUI.start_display(msg)
 
-        # Run
-
-        # for player in self.players:
-        #     player.act()
-        # self.players[0].act()
-
-        self.moveRobot(channel=3)
+                    if player.team == "red":
+                        if self.field.isInside(player.position, "penalty_blue"):
+                            self.penalty_position("red")
+                            self.GUI.start_display("Red team gets penalty")
+                        else:
+                            self.blue_coach.freeze(self.time_passed, 5)
+                    elif player.team == "blue":
+                        if self.field.isInside(player.position, "penalty_red"):
+                            self.penalty_position("blue")
+                            self.GUI.start_display("Blue team gets penalty")
+                        else:
+                            self.red_coach.freeze(self.time_passed, 5)
+                else:
+                    self.GUI.start_display("Fell by itself", time_s=1)
 
         # GUI
         self.debug = self.debug_button.update()
         scores = (self.red_score, self.blue_score)
         self.GUI.show(
             self.debug,
-            self.time_passed_text,
+            self.time_passed,
             scores,
             self.field,
             self.ball,
             self.players,
             self.buttons,
         )
+
+        # Update
+        for player in self.players:
+            player.getPosition()
+        self.ball.getPosition()
+
+        self.red_coach.act(self.time_passed)
+        self.blue_coach.act(self.time_passed)
+
+        self.GUI.flip()
 
     def moveRobot(self, channel=0):
         message = [0.0, 0.0, 0.0, 0.0]
@@ -113,29 +166,47 @@ class SimController(Supervisor):
         self.emitter.setChannel(channel)
         self.emitter.send(message)
 
-    def reset_simulation(self):
-        self.ball.reset()
+    def kickoff_position(self):
+        self.ball.resetPosition()
+        self.ball.resetPhysics()
         for player in self.players:
-            player.reset()
+            player.resetPosition()
+            player.resetOrientation()
+            player.resetPhysics()
+        self.latest_player = None
+
+        self.red_coach.state = "Attacking"
+        self.blue_coach.state = "Attacking"
+
+    def penalty_position(self, team):
+        if team == "red":
+            self.red_coach.state = "Penalty own"
+            self.blue_coach.state = "Penalty other"
+            self.ball.setPosition([3.2, -0.1, 0.3])
+        elif team == "blue":
+            self.red_coach.state = "Penalty other"
+            self.blue_coach.state = "Penalty own"
+            self.ball.setPosition([-3.2, -0.1, 0.3])
+
+        for player in self.players:
+            player.setPosition(player.penalty_pos)
+            player.resetOrientation()
+        self.latest_player = None
 
     def check_goal(self):
         if self.field.isInside(self.ball.getPosition(), "goal_red"):
             self.blue_score += 1
-            print("Blue Team Scored")
+            self.GUI.start_display("Blue team has scored")
             return True
         elif self.field.isInside(self.ball.getPosition(), "goal_blue"):
             self.red_score += 1
-            print("Red Team Scored")
+            self.GUI.start_display("Red team has scored")
             return True
         else:
             return False
 
     def ball_out(self):
         return not self.field.isInside(self.ball.getPosition(), "field")
-
-    def get_time(self):
-        self.time_passed = time.time() - self.start_game_time_seconds
-        self.time_passed_text = time.strftime("%M:%S", time.gmtime(self.time_passed))
 
     def time_up(self):
         return self.time_passed > self.max_game_time_secs

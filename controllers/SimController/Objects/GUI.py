@@ -3,6 +3,7 @@ from pygame import math
 import numpy as np
 import ctypes
 from ctypes import wintypes
+import time
 
 
 class GUI:
@@ -11,7 +12,7 @@ class GUI:
         pygame.init()
 
         self.window_size = window_size
-        self.screen = pygame.display.set_mode(self.window_size)
+        self.screen = pygame.display.set_mode(self.window_size, pygame.RESIZABLE)
         pygame.display.set_caption("Robocup")
         icon = pygame.image.load("Objects/icon.png")
         pygame.display.set_icon(icon)
@@ -33,10 +34,20 @@ class GUI:
 
         self.font = pygame.font.Font("freesansbold.ttf", 20)
 
+        self.messages = []
+
     def show(self, debug, time_passed, scores, field, ball, players, buttons):
+        self.time_passed = time_passed
+        time_passed_text = time.strftime("%M:%S", time.gmtime(time_passed))
+
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 running = False
+            if event.type == pygame.VIDEORESIZE:
+                w = int(event.w)
+                h = int(w * 0.68)
+                self.screen = pygame.display.set_mode((w, h), pygame.RESIZABLE)
+                self.window_size = (w, h)
 
         self.screen.fill((0, 120, 0))
 
@@ -49,8 +60,35 @@ class GUI:
         for button in buttons:
             self.showButton(button)
 
-        self.drawText(time_passed, scores)
+        self.drawText(time_passed_text, scores)
 
+        self.display_message()
+
+    def start_display(self, message, time_s=3):
+        self.messages.append((message, self.time_passed + time_s))
+        print(message)
+
+    def display_message(self):
+        y = 0
+        for idx, message in enumerate(self.messages):
+            y += 30
+            scored_text = self.font.render(message[0], True, (0, 0, 0))
+
+            scored_rect = scored_text.get_rect(center=(self.window_size[0] / 2, 50))
+            scored_background = pygame.Surface(
+                (scored_rect.width + 10, scored_rect.height + 10)
+            )
+            scored_background.fill((255, 255, 255))
+            scored_background.blit(scored_text, (10, 10))
+            scored_rect = scored_background.get_rect(
+                center=(self.window_size[0] / 2, y)
+            )
+            self.screen.blit(scored_background, scored_rect)
+
+            if self.time_passed > message[1]:
+                self.messages.pop(idx)
+
+    def flip(self):
         pygame.display.flip()
 
     def showButton(self, button):
@@ -90,12 +128,28 @@ class GUI:
 
     def drawText(self, time_passed, scores):
         score_text = f"Red {scores[0]} | {scores[1]} Blue      "
-        text = self.font.render(
-            score_text + time_passed, True, (0, 0, 0), (255, 255, 255)
+        text = self.font.render(score_text + time_passed, True, (0, 0, 0))
+        text_padding = 5
+        background_size = (
+            text.get_width() + text_padding * 2,
+            text.get_height() + text_padding * 2,
         )
-        textRect = text.get_rect()
-        textRect.midbottom = (self.window_size[0] / 2, self.window_size[1])
-        self.screen.blit(text, textRect)
+        background = pygame.Surface(background_size)
+        background.fill((255, 255, 255))
+        text_rect = text.get_rect(center=background.get_rect().center)
+        # text_rect.move_ip(text_padding, text_padding)
+        background.blit(text, text_rect)
+        background_rect = background.get_rect(
+            midbottom=(self.window_size[0] / 2, self.window_size[1])
+        )
+        self.screen.blit(background, background_rect)
+
+        # text = self.font.render(
+        #     score_text + time_passed, True, (0, 0, 0), (255, 255, 255)
+        # )
+        # textRect = text.get_rect()
+        # textRect.midbottom = (self.window_size[0] / 2, self.window_size[1])
+        # self.screen.blit(text, textRect)
 
     def showBall(self, ball):
         color = (255, 255, 255)
@@ -144,14 +198,14 @@ class GUI:
         pygame.draw.circle(
             self.screen,
             player.color,
-            self.mapToGUI(player.position),
+            self.mapToGUI(player.getPosition()),
             self.scaleToGUI(player.circle_radius),
         )
         pygame.draw.circle(
             self.screen,
             (0, 255, 0),
             self.mapToGUI(
-                player.position
+                player.getPosition()
                 + 0.9
                 * np.array(
                     (
@@ -166,7 +220,7 @@ class GUI:
             self.screen,
             (0, 255, 0),
             self.mapToGUI(
-                player.position
+                player.getPosition()
                 + 0.9
                 * np.array(
                     (
@@ -188,8 +242,8 @@ class GUI:
                 (255, 255, 255),
                 True,
                 [
-                    self.mapToGUI(player.position),
-                    self.mapToGUI(player.position + distance * dir_vector),
+                    self.mapToGUI(player.getPosition()),
+                    self.mapToGUI(player.getPosition() + distance * dir_vector),
                 ],
                 1,
             )
@@ -200,8 +254,8 @@ class GUI:
             (255, 0, 0),
             True,
             [
-                self.mapToGUI(player.position),
-                self.mapToGUI(player.position + dir_vector),
+                self.mapToGUI(player.getPosition()),
+                self.mapToGUI(player.getPosition() + dir_vector),
             ],
             1,
         )

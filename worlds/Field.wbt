@@ -4,14 +4,15 @@ EXTERNPROTO "https://raw.githubusercontent.com/cyberbotics/webots/R2023a/project
 EXTERNPROTO "https://raw.githubusercontent.com/cyberbotics/webots/R2023a/projects/objects/backgrounds/protos/TexturedBackgroundLight.proto"
 IMPORTABLE EXTERNPROTO "../protos/Nao.proto"
 EXTERNPROTO "https://raw.githubusercontent.com/cyberbotics/webots/R2023a/projects/objects/robotstadium/protos/RobotstadiumSoccerField.proto"
-IMPORTABLE EXTERNPROTO "https://raw.githubusercontent.com/cyberbotics/webots/R2023a/projects/objects/balls/protos/RobocupSoccerBall.proto"
-IMPORTABLE EXTERNPROTO "https://raw.githubusercontent.com/cyberbotics/webots/R2023a/projects/objects/robotstadium/protos/RobotstadiumGoal.proto"
+IMPORTABLE EXTERNPROTO "../protos/RobocupSoccerBall.proto"
+IMPORTABLE EXTERNPROTO "../protos/RobotstadiumGoal.proto"
 
 WorldInfo {
 }
 Viewpoint {
-  orientation -0.12851509346005635 0.13111144539424155 0.9830023701088344 1.5679387449576716
-  position -0.12889253032388936 -12.402975181936128 3.4959616225066847
+  fieldOfView 0.5
+  orientation -0.08951046268250346 0.09041007285696465 0.9918739314027577 1.5689554262166014
+  position -0.11331942685431448 -18.341415678611583 3.7417621011100226
 }
 Robot {
   children [
