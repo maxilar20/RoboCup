@@ -1,6 +1,6 @@
 from pygame import math
 
-GAME_TIME = 15  # minutes
+GAME_TIME = 20  # minutes
 
 
 PLAYERS_DEF = [

@@ -47,7 +47,6 @@ class SimController(Supervisor):
         )
 
         self.latest_player = None
-
         self.starting_team = "red"
 
     def detect_closest(self, player):
