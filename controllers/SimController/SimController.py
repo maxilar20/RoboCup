@@ -48,6 +48,8 @@ class SimController(Supervisor):
 
         self.latest_player = None
 
+        self.starting_team = "red"
+
     def detect_closest(self, player):
         closest = None
         closest_dist = 99
@@ -110,6 +112,12 @@ class SimController(Supervisor):
                             self.red_coach.freeze(self.time_passed, 5)
                 else:
                     self.GUI.start_display("Fell by itself", time_s=1)
+
+        if self.latest_player is None:
+            if self.starting_team == "red":
+                self.blue_coach.freeze(self.time_passed, 1)
+            else:
+                self.red_coach.freeze(self.time_passed, 1)
 
         # GUI
         self.debug = self.debug_button.update()
@@ -175,6 +183,7 @@ class SimController(Supervisor):
             player.resetPhysics()
         self.latest_player = None
 
+        self.latest_player = None
         self.red_coach.state = "Attacking"
         self.blue_coach.state = "Attacking"
 
@@ -191,15 +200,16 @@ class SimController(Supervisor):
         for player in self.players:
             player.setPosition(player.penalty_pos)
             player.resetOrientation()
-        self.latest_player = None
 
     def check_goal(self):
         if self.field.isInside(self.ball.getPosition(), "goal_red"):
             self.blue_score += 1
+            self.starting_team = "red"
             self.GUI.start_display("Blue team has scored")
             return True
         elif self.field.isInside(self.ball.getPosition(), "goal_blue"):
             self.red_score += 1
+            self.starting_team = "blue"
             self.GUI.start_display("Red team has scored")
             return True
         else:

@@ -43,7 +43,7 @@ class Coach:
 
         self.state = "Attacking"
 
-    def freeze(self, current_time, time):
+    def freeze(self, current_time, time=99999):
         self.state = "Freeze"
         self.freeze_end_time = current_time + time
 
@@ -101,7 +101,7 @@ class Coach:
             if current_time > self.freeze_end_time:
                 self.state = "Attacking"
         elif self.state == "Kick Off" or self.state == "Frozen":
-            pass
+            self.penalty_other()
 
     def attack(self):
         player = self.players_dict["attacker_right"]
