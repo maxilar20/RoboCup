@@ -2,10 +2,9 @@ from controller import Supervisor
 from Objects import Player, Ball, Field, GUI, Button
 from coach import Coach
 from config import GAME_TIME, PLAYERS_DEF, BOUNDARIES
+import random
 
 import pygame
-
-import time
 
 
 class SimController(Supervisor):
@@ -47,7 +46,7 @@ class SimController(Supervisor):
         )
 
         self.latest_player = None
-        self.starting_team = "red"
+        self.starting_team = random.choice(["red", "blue"])
 
     def detect_closest(self, player):
         closest = None
@@ -77,13 +76,12 @@ class SimController(Supervisor):
         if closest_dist < 0.4:
             self.latest_player = closest
 
-        if simcontroller.ball_out():
-            if self.latest_player:
-                self.GUI.start_display(f"Ball Out by {self.latest_player.name}")
-                if self.latest_player.team == "red":
-                    self.red_coach.freeze(self.time_passed, 5)
-                elif self.latest_player.team == "blue":
-                    self.blue_coach.freeze(self.time_passed, 5)
+        if simcontroller.ball_out() and self.latest_player:
+            self.GUI.start_display(f"Ball Out by {self.latest_player.name}")
+            if self.latest_player.team == "red":
+                self.red_coach.freeze(self.time_passed, 5)
+            elif self.latest_player.team == "blue":
+                self.blue_coach.freeze(self.time_passed, 5)
 
         # Penalty check
         for player in self.players:
