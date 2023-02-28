@@ -83,7 +83,7 @@ class SimController(Supervisor):
                 self.GUI.start_display(f"Ball Out by {self.latest_player.name}")
                 if self.latest_player.team == "red":
                     self.red_coach.freeze(self.time_passed, 5)
-                elif self.latest_player.team == "red":
+                elif self.latest_player.team == "blue":
                     self.blue_coach.freeze(self.time_passed, 5)
 
         # Penalty check
