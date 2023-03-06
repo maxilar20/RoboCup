@@ -103,7 +103,7 @@ class Coach:
 
     def attack(self):
         player = self.players_dict["attacker_right"]
-        if self.field.isInside(self.ball.position, f"{self.other_team}_side") and (
+        if self.field.isInside(self.ball.position, f"side_{self.other_team}") and (
             self.field.isInside(self.ball.position, "flank1")
             or self.field.isInside(self.ball.position, "flank2")
         ):

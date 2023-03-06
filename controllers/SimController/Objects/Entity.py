@@ -67,5 +67,9 @@ class Entity:
     def resetPhysics(self):
         self.node.resetPhysics()
 
+    def update(self):
+        self.getPosition()
+        self.getOrientation()
+
     def show(self):
         return

@@ -19,26 +19,23 @@ class SimController(Supervisor):
         self.red_score = 0
         self.blue_score = 0
 
-        self.emitter = self.getDevice("emitter")
-
         self.GUI = GUI()
 
         self.debug_button = Button((10, 10), "Debug", 20, "black on white")
         self.buttons = [self.debug_button]
         self.field = Field(BOUNDARIES)
         self.ball = Ball(self)
-        self.players = [
-            Player(self, **player, emitter=self.emitter) for player in PLAYERS_DEF
-        ]
-        self.red_team = [player for player in self.players if player.team == "red"]
-        self.blue_team = [player for player in self.players if player.team == "blue"]
 
-        self.red_coach = Coach(
-            self.red_team, self.blue_team, self.field, self.ball, self.GUI
-        )
-        self.blue_coach = Coach(
-            self.blue_team, self.red_team, self.field, self.ball, self.GUI
-        )
+        emitter = self.getDevice("emitter")
+        self.players = [
+            Player(self, **player, emitter=emitter) for player in PLAYERS_DEF
+        ]
+
+        red_team = [player for player in self.players if player.team == "red"]
+        blue_team = [player for player in self.players if player.team == "blue"]
+
+        self.red_coach = Coach(red_team, blue_team, self.field, self.ball, self.GUI)
+        self.blue_coach = Coach(blue_team, red_team, self.field, self.ball, self.GUI)
 
         self.latest_player = None
         self.starting_team = random.choice(["red", "blue"])
