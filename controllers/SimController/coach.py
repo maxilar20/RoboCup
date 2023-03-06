@@ -42,6 +42,7 @@ class Coach:
         self.line_vectors = [vec2(0, -1), vec2(1, 0), vec2(0, 1), vec2(-1, 0)]
 
         self.state = "Attacking"
+        self.kick_offset = random.choice([vec2(0, 0.5), vec2(0, -0.5)])
 
     def freeze(self, current_time, time=99999):
         self.state = "Freeze"
@@ -57,10 +58,8 @@ class Coach:
             0.1 * (self.ball.position - own_goal_pos)
         )
 
-        if self.ball.position[1] > 0:
-            rotation_angle = -45
-        else:
-            rotation_angle = 45
+        rotation_angle = -45 if self.ball.position[1] > 0 else 45
+
         self.support_position = (
             self.ball.position
             + (other_goal_pos - self.ball.position)
@@ -73,10 +72,8 @@ class Coach:
 
         player_list = self.own_players.copy()
 
-        self.players_dict = {}
-
         goalie = self.own_players_dict["goalie"]
-        self.players_dict["goalie"] = goalie
+        self.players_dict = {"goalie": goalie}
         player_list.remove(goalie)
 
         attacker_right = self.closestTo(self.ball.position, player_list)
@@ -90,9 +87,10 @@ class Coach:
         self.players_dict["defender"] = player_list[0]
 
         if self.state == "Attacking":
-            self.attack()
-        elif self.state == "Defending":
-            self.defend()
+            if self.field.isInside(self.ball.position, f"shooting_{self.team}"):
+                self.defend()
+            else:
+                self.attack()
         elif self.state == "Penalty other":
             self.penalty_other()
         elif self.state == "Penalty own":
@@ -100,13 +98,21 @@ class Coach:
         elif self.state == "Freeze":
             if current_time > self.freeze_end_time:
                 self.state = "Attacking"
-        elif self.state == "Kick Off" or self.state == "Frozen":
+        elif self.state in ["Kick Off", "Frozen"]:
             self.penalty_other()
 
     def attack(self):
         player = self.players_dict["attacker_right"]
-        goal_pos = self.field.getCenterPosition(f"goal_{self.other_team}")
-        move_vector, look_vector = self.moveBall(player, goal_pos)
+        if self.field.isInside(self.ball.position, f"{self.other_team}_side") and (
+            self.field.isInside(self.ball.position, "flank1")
+            or self.field.isInside(self.ball.position, "flank2")
+        ):
+            goal_pos = self.players_dict["attacker_left"].position
+            goal_pos += self.dir * vec2(0.3, 0)
+            move_vector, look_vector = self.kickBall(player, goal_pos)
+        else:
+            goal_pos = self.field.getCenterPosition(f"goal_{self.other_team}")
+            move_vector, look_vector = self.moveBall(player, goal_pos)
         player.act(move_vector, look_vector)
         self.show(player, move_vector)
 
@@ -144,12 +150,44 @@ class Coach:
         self.show(player, move_vector)
 
     def defend(self):
-        pass
+        player = self.players_dict["attacker_right"]
+        goal_pos = self.field.getCenterPosition(f"goal_{self.other_team}")
+        move_vector, look_vector = self.moveBall(player, goal_pos)
+        player.act(move_vector, look_vector)
+        self.show(player, move_vector)
+
+        player = self.players_dict["attacker_left"]
+        move_vector, look_vector = player.moveTo(
+            self.support_position,
+            self.all_players,
+            self.ball,
+            self.lines,
+            self.line_vectors,
+        )
+        player.act(move_vector, look_vector)
+        self.show(player, move_vector)
+
+        player = self.players_dict["defender"]
+        move_vector, look_vector = player.moveTo(
+            self.defend_position,
+            self.all_players,
+            self.ball,
+            self.lines,
+            self.line_vectors,
+        )
+        player.act(move_vector, look_vector)
+        self.show(player, move_vector)
+
+        player = self.players_dict["goalie"]
+        goal_pos = self.players_dict["attacker_left"].position
+        move_vector, look_vector = self.moveBall(player, goal_pos)
+        player.act(move_vector, look_vector)
+        self.show(player, move_vector)
 
     def penalty_own(self):
         player = self.players_dict["attacker_right"]
         goal_pos = self.field.getCenterPosition(f"goal_{self.other_team}")
-        move_vector, look_vector = self.moveBall(player, goal_pos)
+        move_vector, look_vector = self.kickBall(player, goal_pos + self.kick_offset)
         player.act(move_vector, look_vector)
         self.show(player, move_vector)
 
@@ -196,13 +234,17 @@ class Coach:
         self.show(player, move_vector)
 
         player = self.players_dict["goalie"]
-        move_vector, look_vector = player.moveTo(
-            self.goalie_position,
-            self.all_players,
-            self.ball,
-            self.lines,
-            self.line_vectors,
-        )
+        goal_pos = self.field.getCenterPosition(f"goal_{self.other_team}")
+        if self.field.isInside(self.ball.position, f"penalty_{self.team}"):
+            move_vector, look_vector = self.moveBall(player, goal_pos)
+        else:
+            move_vector, look_vector = player.moveTo(
+                self.goalie_position,
+                self.all_players,
+                self.ball,
+                self.lines,
+                self.line_vectors,
+            )
         player.act(move_vector, look_vector)
         self.show(player, move_vector)
 
@@ -227,6 +269,38 @@ class Coach:
                 self.field.isInside(ball_pos, f"shooting_{self.other_team}")
                 and (ball_pos - player.position).magnitude() < 0.2
             ):
+                player.kick()
+        else:
+            dribbling_pos = ball_mov_vector.normalize() * -0.3
+            goal_pos = dribbling_pos + self.ball.position
+
+            move_vector = player.pursue(goal_pos)
+            move_vector += 10 * player.avoidEntity([self.ball], 0.4)
+            look_vector = player.pursue(goal_pos)
+
+        move_vector += player.avoidEntity(self.all_players, 0.75)
+
+        self.show(self.ball, dribbling_pos, [255, 0, 0])
+        return move_vector, look_vector
+
+    def kickBall(self, player, goal_pos):
+        ball_mov_vector = self.ballPlan(goal_pos)
+
+        ball_pos = self.ball.position
+        dist_to_ball = (
+            (player.position - ball_pos)
+            .project(ball_mov_vector)
+            .rotate(ball_mov_vector.angle_to(vec2((1, 0))))
+        )[0]
+
+        if dist_to_ball < -0.15:
+            dribbling_pos = ball_mov_vector.normalize() * dist_to_ball
+            goal_pos = dribbling_pos + self.ball.position
+
+            move_vector = player.pursue(goal_pos)
+            move_vector += player.pursue(ball_pos)
+            look_vector = ball_pos - player.position
+            if (ball_pos - player.position).magnitude() < 0.2:
                 player.kick()
         else:
             dribbling_pos = ball_mov_vector.normalize() * -0.3
