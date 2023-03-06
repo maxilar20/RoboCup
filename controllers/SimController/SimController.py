@@ -5,6 +5,7 @@ from config import GAME_TIME, PLAYERS_DEF, BOUNDARIES
 import random
 
 import pygame
+from pygame.math import Vector2 as vec2
 
 
 class SimController(Supervisor):
@@ -77,6 +78,17 @@ class SimController(Supervisor):
             self.latest_player = closest
 
         if simcontroller.ball_out() and self.latest_player:
+            self.ball.resetPhysics()
+
+            new_pos = self.ball.position + vec2(
+                random.choice([-0.05, 0.05]), random.choice([-0.05, 0.05])
+            )
+            while not self.field.isInside(new_pos):
+                new_pos = self.ball.position + vec2(
+                    random.choice([-0.05, 0.05]), random.choice([-0.05, 0.05])
+                )
+            self.ball.setPosition([new_pos[0], new_pos[1], 0.2])
+
             self.GUI.start_display(f"Ball Out by {self.latest_player.name}")
             if self.latest_player.team == "red":
                 self.red_coach.freeze(self.time_passed, 5)
@@ -180,10 +192,6 @@ class SimController(Supervisor):
             player.resetPhysics()
         self.latest_player = None
 
-        self.latest_player = None
-        self.red_coach.state = "Attacking"
-        self.blue_coach.state = "Attacking"
-
     def penalty_position(self, team):
         if team == "red":
             self.red_coach.state = "Penalty own"
@@ -194,6 +202,7 @@ class SimController(Supervisor):
             self.blue_coach.state = "Penalty own"
             self.ball.setPosition([-3.2, -0.1, 0.3])
 
+        self.ball.resetPhysics()
         for player in self.players:
             player.setPosition(player.penalty_pos)
             player.resetOrientation()

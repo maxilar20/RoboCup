@@ -80,4 +80,6 @@ BOUNDARIES = {
     "shooting_blue": (math.Vector2(3.5, 1.5), math.Vector2(4.5, -1.5)),
     "red_side": (math.Vector2(-4.5, 3), math.Vector2(0, -3)),
     "blue_side": (math.Vector2(0, 3), math.Vector2(4.5, -3)),
+    "flank1": (math.Vector2(-4.5, -2.5), math.Vector2(4.5, -3)),
+    "flank2": (math.Vector2(-4.5, 3), math.Vector2(4.5, 2.5)),
 }
