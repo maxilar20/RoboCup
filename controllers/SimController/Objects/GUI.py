@@ -36,10 +36,7 @@ class GUI:
 
         self.messages = []
 
-    def show(self, debug, time_passed, scores, field, ball, players, buttons):
-        self.time_passed = time_passed
-        time_passed_text = time.strftime("%M:%S", time.gmtime(time_passed))
-
+    def show(self, time_passed, scores, field, ball, players, buttons):
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 running = False
@@ -52,14 +49,17 @@ class GUI:
         self.screen.fill((0, 120, 0))
 
         self.showField(field)
+
         self.showBall(ball)
+
         for player in players:
             self.showPlayer(player)
-            if debug:
-                self.showSensors(player)
+
         for button in buttons:
             self.showButton(button)
 
+        self.time_passed = time_passed
+        time_passed_text = time.strftime("%M:%S", time.gmtime(time_passed))
         self.drawText(time_passed_text, scores)
 
         self.display_message()
@@ -69,9 +69,7 @@ class GUI:
         print(message)
 
     def display_message(self):
-        y = 0
         for idx, message in enumerate(self.messages):
-            y += 30
             scored_text = self.font.render(message[0], True, (0, 0, 0))
 
             scored_rect = scored_text.get_rect(center=(self.window_size[0] / 2, 50))
@@ -81,7 +79,7 @@ class GUI:
             scored_background.fill((255, 255, 255))
             scored_background.blit(scored_text, (10, 10))
             scored_rect = scored_background.get_rect(
-                center=(self.window_size[0] / 2, y)
+                center=(self.window_size[0] / 2, idx * 30)
             )
             self.screen.blit(scored_background, scored_rect)
 
