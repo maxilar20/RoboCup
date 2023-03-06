@@ -41,12 +41,9 @@ class Coach:
         self.state = "Attacking"
         self.kick_offset = random.choice([vec2(0, 0.5), vec2(0, -0.5)])
 
-    def freeze(self, current_time, time=99999):
-        self.state = "Freeze"
-        self.freeze_end_time = current_time + time
-
     def act(self, current_time):
         self.getPlayersDict()
+
         if self.state == "Attacking":
             if self.field.isInside(self.ball.position, f"shooting_{self.team}"):
                 self.defend()
@@ -282,6 +279,10 @@ class Coach:
         pursue_vector = goal_position - own.position
         pursue_vector = pursue_vector.normalize()
         return pursue_vector
+
+    def freeze(self, current_time, time=99999):
+        self.state = "Freeze"
+        self.freeze_end_time = current_time + time
 
     def closestTo(self, pos, others):
         distances = [(pos - other.position).magnitude() for other in others]

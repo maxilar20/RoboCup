@@ -129,6 +129,9 @@ class SimController(Supervisor):
             )
         self.ball.setPosition([new_pos[0], new_pos[1], 0.2])
 
+        if not self.latest_player:
+            return
+
         self.GUI.start_display(f"Ball Out by {self.latest_player.name}")
         if self.latest_player.team == "red":
             self.red_coach.freeze(self.time_passed, 5)
