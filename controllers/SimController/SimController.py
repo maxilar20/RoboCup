@@ -22,7 +22,17 @@ class SimController(Supervisor):
         self.GUI = GUI()
 
         self.debug_button = Button((10, 10), "Debug", 20, "black on white")
-        self.buttons = [self.debug_button]
+        self.penalty_red_btn = Button(
+            (60, 10), "Penalty red", 20, "black on white", self.penalty_red
+        )
+        self.penalty_blue_btn = Button(
+            (140, 10), "Penalty blue", 20, "black on white", self.penalty_blue
+        )
+        self.buttons = [
+            self.debug_button,
+            self.penalty_red_btn,
+            self.penalty_blue_btn,
+        ]
         self.field = Field(BOUNDARIES)
         self.ball = Ball(self)
 
@@ -34,10 +44,13 @@ class SimController(Supervisor):
         red_team = [player for player in self.players if player.team == "red"]
         blue_team = [player for player in self.players if player.team == "blue"]
 
-        self.red_coach = Coach(red_team, blue_team, self.field, self.ball, self.GUI)
-        self.blue_coach = Coach(blue_team, red_team, self.field, self.ball, self.GUI)
+        self.red_coach = Coach(red_team, blue_team, self.field, self.ball)
+        self.blue_coach = Coach(blue_team, red_team, self.field, self.ball)
+
+        self.showable = [self.field, self.ball] + self.players + self.buttons
 
         self.latest_player = None
+        self.kickoff = True
         self.starting_team = random.choice(["red", "blue"])
 
     def run(self):
@@ -47,6 +60,7 @@ class SimController(Supervisor):
             simcontroller.end_simulation()
 
         if simcontroller.is_goal():
+            self.kickoff = True
             simcontroller.kickoff_position()
 
         if simcontroller.is_ball_out() and self.latest_player:
@@ -56,31 +70,30 @@ class SimController(Supervisor):
             if player.hasFallen():
                 self.fault(player)
 
-        # GUI
-        scores = (self.red_score, self.blue_score)
-        self.GUI.show(
-            self.time_passed, scores, self.field, self.ball, self.players, self.buttons
-        )
-
         # Update
         for player in self.players:
             player.getPosition()
         self.ball.getPosition()
+        for button in self.buttons:
+            button.update()
 
         closest, closest_dist = self.detect_closest(self.ball)
         if closest_dist < 0.4:
             self.latest_player = closest
+            self.kickoff = False
 
-        if self.latest_player is None:
+        if self.kickoff:
             if self.starting_team == "red":
                 self.blue_coach.freeze(self.time_passed, 1)
-            else:
+            elif self.starting_team == "blue":
                 self.red_coach.freeze(self.time_passed, 1)
 
         self.red_coach.act(self.time_passed)
         self.blue_coach.act(self.time_passed)
 
-        self.GUI.flip()
+        # GUI
+        scores = (self.red_score, self.blue_score)
+        self.GUI.show(self.debug_button.state, self.time_passed, scores, self.showable)
 
     # Conditions
     def is_time_up(self):
@@ -151,13 +164,18 @@ class SimController(Supervisor):
         print("Sim ended")
 
     def kickoff_position(self):
+        self.latest_player = None
+
+        self.red_coach.state = "Attacking"
+        self.blue_coach.state = "Attacking"
+
         self.ball.resetPosition()
         self.ball.resetPhysics()
+
         for player in self.players:
             player.resetPosition()
             player.resetOrientation()
             player.resetPhysics()
-        self.latest_player = None
 
     def penalty_position(self, team):
         if team == "red":
@@ -173,6 +191,12 @@ class SimController(Supervisor):
         for player in self.players:
             player.setPosition(player.penalty_pos)
             player.resetOrientation()
+
+    def penalty_red(self):
+        self.penalty_position("red")
+
+    def penalty_blue(self):
+        self.penalty_position("blue")
 
     def detect_closest(self, player):
         closest = None

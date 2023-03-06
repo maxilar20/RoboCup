@@ -3,6 +3,7 @@ from pygame.math import Vector2 as vec2
 import math as mt
 import numpy as np
 from scipy.spatial.transform import Rotation as R
+import pygame
 
 
 class Player(Entity):
@@ -48,11 +49,15 @@ class Player(Entity):
         )
 
         self.getPosition()
+        self.move_vector = vec2(0.001)
+        self.look_vector = vec2(0.001)
 
-    def act(self, move_vector, look_vector):
+    def act(self):
+        move_vector = self.move_vector
         move_vector = move_vector.clamp_magnitude(1)
         move_vector_rotated = self.transformToPlayer(self, move_vector)
 
+        look_vector = self.look_vector
         look_vector_rotated = self.transformToPlayer(self, look_vector)
 
         rot = np.interp(look_vector_rotated.as_polar()[1], [-180, 180], [2, -2])
@@ -115,15 +120,65 @@ class Player(Entity):
         angle = mt.radians(vector.as_polar()[1]) - player.getOrientation()
         return vector.magnitude() * vec2(mt.cos(angle), mt.sin(angle))
 
+    def show(self, GUI):
+        pygame.draw.circle(
+            GUI.screen,
+            self.color,
+            GUI.mapToGUI(self.getPosition()),
+            GUI.scaleToGUI(self.circle_radius),
+        )
+        pygame.draw.circle(
+            GUI.screen,
+            (0, 255, 0),
+            GUI.mapToGUI(
+                self.getPosition()
+                + 0.9
+                * np.array(
+                    (
+                        self.circle_radius * np.cos(self.getOrientation() + 1),
+                        self.circle_radius * np.sin(self.getOrientation() + 1),
+                    )
+                ),
+            ),
+            GUI.scaleToGUI(self.circle_radius) * 0.5,
+        )
+        pygame.draw.circle(
+            GUI.screen,
+            (0, 255, 0),
+            GUI.mapToGUI(
+                self.getPosition()
+                + 0.9
+                * np.array(
+                    (
+                        self.circle_radius * np.cos(self.getOrientation() - 1),
+                        self.circle_radius * np.sin(self.getOrientation() - 1),
+                    )
+                ),
+            ),
+            GUI.scaleToGUI(self.circle_radius) * 0.5,
+        )
+
+    def debug(self, GUI):
+        pygame.draw.line(
+            GUI.screen,
+            [255, 0, 0],
+            GUI.mapToGUI(self.position),
+            GUI.mapToGUI(self.position + self.move_vector),
+            1,
+        )
+        pygame.draw.line(
+            GUI.screen,
+            [0, 255, 0],
+            GUI.mapToGUI(self.position),
+            GUI.mapToGUI(self.position + self.look_vector.normalize()),
+            1,
+        )
+
 
 def lineseg_dist(p, a, b):
     d = np.divide(b - a, np.linalg.norm(b - a))
-
     s = np.dot(a - p, d)
     t = np.dot(p - b, d)
-
     h = np.maximum.reduce([s, t, 0])
-
     c = np.cross(p - a, d)
-
     return np.hypot(h, np.linalg.norm(c))
