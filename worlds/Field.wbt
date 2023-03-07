@@ -12,10 +12,33 @@ WorldInfo {
 Viewpoint {
   fieldOfView 0.5
   orientation -0.08951046268250346 0.09041007285696465 0.9918739314027577 1.5689554262166014
-  position -0.11331942685431448 -18.341415678611583 3.7417621011100226
+  position -0.13270116286346104 -20.279524673308963 4.0944565166775
 }
 Robot {
   children [
+    Display {
+      translation 0 3.5 1
+      children [
+        Shape {
+          appearance PBRAppearance {
+            baseColorMap ImageTexture {
+              url [
+                "https://raw.githubusercontent.com/cyberbotics/webots/R2023a/projects/samples/devices/worlds/textures/white256.png"
+              ]
+              repeatS FALSE
+              repeatT FALSE
+              filtering 0
+            }
+            metalness 0
+          }
+          geometry Box {
+            size 3 0.1 2
+          }
+        }
+      ]
+      width 334
+      height 230
+    }
     Emitter {
     }
   ]

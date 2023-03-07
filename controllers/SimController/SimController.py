@@ -1,4 +1,4 @@
-from controller import Supervisor
+from controller import Supervisor, Display
 from Objects import Player, Ball, Field, GUI, Button
 from coach import Coach
 from config import GAME_TIME, PLAYERS_DEF, BOUNDARIES
@@ -6,6 +6,9 @@ import random
 
 import pygame
 from pygame.math import Vector2 as vec2
+
+import numpy as np
+import cv2
 
 
 class SimController(Supervisor):
@@ -20,6 +23,7 @@ class SimController(Supervisor):
         self.blue_score = 0
 
         self.GUI = GUI()
+        self.display = self.getDevice("display")
 
         self.debug_button = Button((10, 10), "Debug", 20, "black on white")
         self.penalty_red_btn = Button(
@@ -59,7 +63,7 @@ class SimController(Supervisor):
         if simcontroller.is_time_up():
             if self.red_score == self.blue_score:
                 self.GUI.start_display("The score is tied, adding 5 more minutes")
-                self.max_game_time_secs += 300 #adding 5 more minutes in case of tie
+                self.max_game_time_secs += 300  # adding 5 more minutes in case of tie
             else:
                 simcontroller.end_simulation()
                 self.red_coach.freeze(self.time_passed, 1)
@@ -100,7 +104,15 @@ class SimController(Supervisor):
 
         # GUI
         scores = (self.red_score, self.blue_score)
-        self.GUI.show(self.debug_button.state, self.time_passed, scores, self.showable)
+        img = self.GUI.show(
+            self.debug_button.state, self.time_passed, scores, self.showable
+        )
+        print(self.display.getWidth())
+        rgba = cv2.cvtColor(img, cv2.COLOR_RGB2RGBA)
+
+        ir = self.display.imageNew(rgba.tobytes("F"), Display.RGBA, 334, 230)
+        self.display.imagePaste(ir, 0, 0, False)
+        self.display.imageDelete(ir)
 
     # Conditions
     def is_time_up(self):
