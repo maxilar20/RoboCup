@@ -6,6 +6,9 @@ import random
 
 import pygame
 from pygame.math import Vector2 as vec2
+from playsound import playsound
+import threading
+from time import time
 
 
 class SimController(Supervisor):
@@ -16,7 +19,7 @@ class SimController(Supervisor):
         self.max_game_time_secs = max_game_time_mins * 60
         self.timeStep = int(self.getBasicTimeStep())
 
-        self.red_score = 0
+        self.red_score = 0 
         self.blue_score = 0
 
         self.GUI = GUI()
@@ -52,19 +55,33 @@ class SimController(Supervisor):
         self.latest_player = None
         self.kickoff = True
         self.starting_team = random.choice(["red", "blue"])
-
+   
+        self.cheer_sound = pygame.mixer.Sound(r'Sounds/crowd-cheering-sounds.mp3')
+        self.whistle_sound = pygame.mixer.Sound(r'Sounds/referee-blowing-whistle-sound-effect.mp3')
+        self.background_sound = pygame.mixer.Sound(r'Sounds/crowd-ambience.mp3')
+       
+        self.GUI.start_display(f'{self.starting_team} has won the toss')
+      
+        self.background_sound.play(loops=-1)
+        self.whistle_sound.play()
+    
     def run(self):
         self.time_passed += self.timeStep / 1000
 
         if simcontroller.is_time_up():
+            winner = 'Red' if self.red_score > self.blue_score else 'Blue'
+            self.GUI.display_winner(winner)
+            self.whistle_sound.play()
             simcontroller.end_simulation()
 
         if simcontroller.is_goal():
             self.kickoff = True
             simcontroller.kickoff_position()
+            self.cheer_sound.play()
 
         if simcontroller.is_ball_out() and self.latest_player:
             self.ball_out()
+            self.whistle_sound.play()
 
         for player in self.players:
             if player.hasFallen():
@@ -154,16 +171,21 @@ class SimController(Supervisor):
                     self.GUI.start_display("Red team gets penalty")
                 else:
                     self.blue_coach.freeze(self.time_passed, 5)
+                self.whistle_sound.play()
             elif player.team == "blue":
                 if self.field.isInside(player.position, "penalty_red"):
                     self.penalty_position("blue")
                     self.GUI.start_display("Blue team gets penalty")
                 else:
                     self.red_coach.freeze(self.time_passed, 5)
+                self.whistle_sound.play()
         else:
             self.GUI.start_display("Fell by itself", time_s=1)
+            self.whistle_sound.play()
 
     def end_simulation(self):
+        pygame.mixer.stop()  
+        pygame.mixer.quit()
         print("Sim ended")
 
     def kickoff_position(self):
@@ -179,6 +201,8 @@ class SimController(Supervisor):
             player.resetPosition()
             player.resetOrientation()
             player.resetPhysics()
+
+        self.whistle_sound.play()
 
     def penalty_position(self, team):
         if team == "red":

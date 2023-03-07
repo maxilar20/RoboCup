@@ -35,6 +35,7 @@ class GUI:
         self.font = pygame.font.Font("freesansbold.ttf", 20)
 
         self.messages = []
+        self.time_passed = 0
 
     def show(self, debug, time_passed, scores, entities):
         for event in pygame.event.get():
@@ -65,6 +66,9 @@ class GUI:
         self.messages.append((message, self.time_passed + time_s))
         print(message)
 
+    def display_winner(self, team):
+        self.start_display(f"{team} has won!")
+
     def display_message(self):
         for idx, message in enumerate(self.messages):
             scored_text = self.font.render(message[0], True, (0, 0, 0))
@@ -76,7 +80,7 @@ class GUI:
             scored_background.fill((255, 255, 255))
             scored_background.blit(scored_text, (10, 10))
             scored_rect = scored_background.get_rect(
-                center=(self.window_size[0] / 2, idx * 30)
+                center=(self.window_size[0] / 2, (idx+1) * 30)
             )
             self.screen.blit(scored_background, scored_rect)
 
