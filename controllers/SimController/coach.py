@@ -13,7 +13,6 @@ class Coach:
         enemy_players: list[Player],
         field: Field,
         ball: Ball,
-        GUI: GUI,
     ):
         self.own_players = own_players
         self.enemy_players = enemy_players
@@ -31,8 +30,6 @@ class Coach:
         self.field = field
         self.ball = ball
 
-        self.GUI = GUI
-
         self.team = self.own_players[0].team
         self.other_team = self.enemy_players[0].team
         self.goal_name = "goal_blue" if self.team == "red" else "goal_red"
@@ -44,47 +41,8 @@ class Coach:
         self.state = "Attacking"
         self.kick_offset = random.choice([vec2(0, 0.5), vec2(0, -0.5)])
 
-    def freeze(self, current_time, time=99999):
-        self.state = "Freeze"
-        self.freeze_end_time = current_time + time
-
     def act(self, current_time):
-        own_goal_pos = self.field.getCenterPosition(f"goal_{self.team}")
-        other_goal_pos = self.field.getCenterPosition(f"goal_{self.other_team}")
-        self.defend_position = own_goal_pos + (
-            0.5 * (self.ball.position - own_goal_pos)
-        )
-        self.goalie_position = own_goal_pos + (
-            0.1 * (self.ball.position - own_goal_pos)
-        )
-
-        rotation_angle = -45 if self.ball.position[1] > 0 else 45
-
-        self.support_position = (
-            self.ball.position
-            + (other_goal_pos - self.ball.position)
-            .normalize()
-            .rotate(self.dir * rotation_angle)
-            * 1.5
-        )
-
-        self.showPoint(self.support_position)
-
-        player_list = self.own_players.copy()
-
-        goalie = self.own_players_dict["goalie"]
-        self.players_dict = {"goalie": goalie}
-        player_list.remove(goalie)
-
-        attacker_right = self.closestTo(self.ball.position, player_list)
-        self.players_dict["attacker_right"] = attacker_right
-        player_list.remove(attacker_right)
-
-        attacker_left = self.closestTo(self.support_position, player_list)
-        self.players_dict["attacker_left"] = attacker_left
-        player_list.remove(attacker_left)
-
-        self.players_dict["defender"] = player_list[0]
+        self.getPlayersDict()
 
         if self.state == "Attacking":
             if self.field.isInside(self.ball.position, f"shooting_{self.team}"):
@@ -98,155 +56,128 @@ class Coach:
         elif self.state == "Freeze":
             if current_time > self.freeze_end_time:
                 self.state = "Attacking"
-        elif self.state in ["Kick Off", "Frozen"]:
-            self.penalty_other()
+            else:
+                self.penalty_other()
+
+        for player in self.own_players:
+            player.act()
 
     def attack(self):
         player = self.players_dict["attacker_right"]
-        if self.field.isInside(self.ball.position, f"{self.other_team}_side") and (
+        if self.field.isInside(self.ball.position, f"side_{self.other_team}") and (
             self.field.isInside(self.ball.position, "flank1")
             or self.field.isInside(self.ball.position, "flank2")
         ):
             goal_pos = self.players_dict["attacker_left"].position
             goal_pos += self.dir * vec2(0.3, 0)
-            move_vector, look_vector = self.kickBall(player, goal_pos)
+            player.move_vector, player.look_vector = self.kickBall(player, goal_pos)
         else:
             goal_pos = self.field.getCenterPosition(f"goal_{self.other_team}")
-            move_vector, look_vector = self.moveBall(player, goal_pos)
-        player.act(move_vector, look_vector)
-        self.show(player, move_vector)
+            player.move_vector, player.look_vector = self.moveBall(player, goal_pos)
 
         player = self.players_dict["attacker_left"]
-        move_vector, look_vector = player.moveTo(
+        player.move_vector, player.look_vector = player.moveTo(
             self.support_position,
             self.all_players,
             self.ball,
             self.lines,
             self.line_vectors,
         )
-        player.act(move_vector, look_vector)
-        self.show(player, move_vector)
 
         player = self.players_dict["defender"]
-        move_vector, look_vector = player.moveTo(
+        player.move_vector, player.look_vector = player.moveTo(
             self.defend_position,
             self.all_players,
             self.ball,
             self.lines,
             self.line_vectors,
         )
-        player.act(move_vector, look_vector)
-        self.show(player, move_vector)
 
         player = self.players_dict["goalie"]
-        move_vector, look_vector = player.moveTo(
+        player.move_vector, player.look_vector = player.moveTo(
             self.goalie_position,
             self.all_players,
             self.ball,
             self.lines,
             self.line_vectors,
         )
-        player.act(move_vector, look_vector)
-        self.show(player, move_vector)
 
     def defend(self):
         player = self.players_dict["attacker_right"]
         goal_pos = self.field.getCenterPosition(f"goal_{self.other_team}")
-        move_vector, look_vector = self.moveBall(player, goal_pos)
-        player.act(move_vector, look_vector)
-        self.show(player, move_vector)
+        player.move_vector, player.look_vector = self.moveBall(player, goal_pos)
 
         player = self.players_dict["attacker_left"]
-        move_vector, look_vector = player.moveTo(
+        player.move_vector, player.look_vector = player.moveTo(
             self.support_position,
             self.all_players,
             self.ball,
             self.lines,
             self.line_vectors,
         )
-        player.act(move_vector, look_vector)
-        self.show(player, move_vector)
 
         player = self.players_dict["defender"]
-        move_vector, look_vector = player.moveTo(
+        player.move_vector, player.look_vector = player.moveTo(
             self.defend_position,
             self.all_players,
             self.ball,
             self.lines,
             self.line_vectors,
         )
-        player.act(move_vector, look_vector)
-        self.show(player, move_vector)
 
         player = self.players_dict["goalie"]
         goal_pos = self.players_dict["attacker_left"].position
-        move_vector, look_vector = self.moveBall(player, goal_pos)
-        player.act(move_vector, look_vector)
-        self.show(player, move_vector)
+        player.move_vector, player.look_vector = self.moveBall(player, goal_pos)
 
     def penalty_own(self):
         player = self.players_dict["attacker_right"]
         goal_pos = self.field.getCenterPosition(f"goal_{self.other_team}")
-        move_vector, look_vector = self.kickBall(player, goal_pos + self.kick_offset)
-        player.act(move_vector, look_vector)
-        self.show(player, move_vector)
+        player.move_vector, player.look_vector = self.kickBall(
+            player, goal_pos + self.kick_offset
+        )
 
         player = self.players_dict["attacker_left"]
-        move_vector = player.avoidEntity(self.all_players)
-        look_vector = self.ball.position - player.position
-        player.act(move_vector, look_vector)
-        self.show(player, move_vector)
+        player.move_vector = player.avoidEntity(self.all_players)
+        player.look_vector = self.ball.position - player.position
 
         player = self.players_dict["defender"]
-        move_vector = player.avoidEntity(self.all_players)
-        look_vector = self.ball.position - player.position
-        player.act(move_vector, look_vector)
-        self.show(player, move_vector)
+        player.move_vector = player.avoidEntity(self.all_players)
+        player.look_vector = self.ball.position - player.position
 
         player = self.players_dict["goalie"]
-        move_vector, look_vector = player.moveTo(
+        player.move_vector, player.look_vector = player.moveTo(
             self.goalie_position,
             self.all_players,
             self.ball,
             self.lines,
             self.line_vectors,
         )
-        player.act(move_vector, look_vector)
-        self.show(player, move_vector)
 
     def penalty_other(self):
         player = self.players_dict["attacker_right"]
-        move_vector = player.avoidEntity(self.all_players)
-        look_vector = self.ball.position - player.position
-        player.act(move_vector, look_vector)
-        self.show(player, move_vector)
+        player.move_vector = player.avoidEntity(self.all_players)
+        player.look_vector = self.ball.position - player.position
 
         player = self.players_dict["attacker_left"]
-        move_vector = player.avoidEntity(self.all_players)
-        look_vector = self.ball.position - player.position
-        player.act(move_vector, look_vector)
-        self.show(player, move_vector)
+        player.move_vector = player.avoidEntity(self.all_players)
+        player.look_vector = self.ball.position - player.position
 
         player = self.players_dict["defender"]
-        move_vector = player.avoidEntity(self.all_players)
-        look_vector = self.ball.position - player.position
-        player.act(move_vector, look_vector)
-        self.show(player, move_vector)
+        player.move_vector = player.avoidEntity(self.all_players)
+        player.look_vector = self.ball.position - player.position
 
         player = self.players_dict["goalie"]
         goal_pos = self.field.getCenterPosition(f"goal_{self.other_team}")
         if self.field.isInside(self.ball.position, f"penalty_{self.team}"):
-            move_vector, look_vector = self.moveBall(player, goal_pos)
+            player.move_vector, player.look_vector = self.moveBall(player, goal_pos)
         else:
-            move_vector, look_vector = player.moveTo(
+            player.move_vector, player.look_vector = player.moveTo(
                 self.goalie_position,
                 self.all_players,
                 self.ball,
                 self.lines,
                 self.line_vectors,
             )
-        player.act(move_vector, look_vector)
-        self.show(player, move_vector)
 
     def moveBall(self, player, goal_pos):
         ball_mov_vector = self.ballPlan(goal_pos)
@@ -280,7 +211,6 @@ class Coach:
 
         move_vector += player.avoidEntity(self.all_players, 0.75)
 
-        self.show(self.ball, dribbling_pos, [255, 0, 0])
         return move_vector, look_vector
 
     def kickBall(self, player, goal_pos):
@@ -300,7 +230,7 @@ class Coach:
             move_vector = player.pursue(goal_pos)
             move_vector += player.pursue(ball_pos)
             look_vector = ball_pos - player.position
-            if (ball_pos - player.position).magnitude() < 0.2:
+            if (ball_pos - player.position).magnitude() < 0.225:
                 player.kick()
         else:
             dribbling_pos = ball_mov_vector.normalize() * -0.3
@@ -312,7 +242,6 @@ class Coach:
 
         move_vector += player.avoidEntity(self.all_players, 0.75)
 
-        self.show(self.ball, dribbling_pos, [255, 0, 0])
         return move_vector, look_vector
 
     def ballPlan(self, goal_pos):
@@ -324,8 +253,6 @@ class Coach:
 
         pursue_vector = self.pursue(self.ball, goal_pos)
         move_vector = (3 * avoid_vector) + pursue_vector + (2 * avoid_out_vector)
-
-        self.show(self.ball, move_vector)
 
         return move_vector
 
@@ -353,27 +280,53 @@ class Coach:
         pursue_vector = pursue_vector.normalize()
         return pursue_vector
 
+    def freeze(self, current_time, time=99999):
+        self.state = "Freeze"
+        self.freeze_end_time = current_time + time
+
     def closestTo(self, pos, others):
-        distances = []
-        for other in others:
-            distances.append((pos - other.position).magnitude())
+        distances = [(pos - other.position).magnitude() for other in others]
         return others[np.argmin(distances)]
 
     def transformToPlayer(self, player, vector):
-        angle = mt.radians(vector.as_polar()[1]) - player.getOrientation()
+        angle = mt.radians(vector.as_polar()[1]) - player.orientation
         return vector.magnitude() * vec2(mt.cos(angle), mt.sin(angle))
 
-    def show(self, player, goal, color=[0, 255, 0]):
-        pygame.draw.line(
-            self.GUI.screen,
-            color,
-            self.GUI.mapToGUI(player.position),
-            self.GUI.mapToGUI(player.position + goal),
-            1,
+    def getPlayersDict(self):
+        own_goal_pos = self.field.getCenterPosition(f"goal_{self.team}")
+        other_goal_pos = self.field.getCenterPosition(f"goal_{self.other_team}")
+        self.defend_position = own_goal_pos + (
+            0.5 * (self.ball.position - own_goal_pos)
+        )
+        self.goalie_position = own_goal_pos + (
+            0.1 * (self.ball.position - own_goal_pos)
         )
 
-    def showPoint(self, pos, color=[255, 0, 0]):
-        pygame.draw.circle(self.GUI.screen, color, self.GUI.mapToGUI(pos), 3)
+        rotation_angle = -45 if self.ball.position[1] > 0 else 45
+
+        self.support_position = (
+            self.ball.position
+            + (other_goal_pos - self.ball.position)
+            .normalize()
+            .rotate(self.dir * rotation_angle)
+            * 1.5
+        )
+
+        player_list = self.own_players.copy()
+
+        goalie = self.own_players_dict["goalie"]
+        self.players_dict = {"goalie": goalie}
+        player_list.remove(goalie)
+
+        attacker_right = self.closestTo(self.ball.position, player_list)
+        self.players_dict["attacker_right"] = attacker_right
+        player_list.remove(attacker_right)
+
+        attacker_left = self.closestTo(self.support_position, player_list)
+        self.players_dict["attacker_left"] = attacker_left
+        player_list.remove(attacker_left)
+
+        self.players_dict["defender"] = player_list[0]
 
     def getLinesInRect(self, top_left, bottom_right):
         return [

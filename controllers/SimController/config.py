@@ -1,6 +1,6 @@
 from pygame import math
 
-GAME_TIME = 20  # minutes
+GAME_TIME = 2  # minutes
 
 
 PLAYERS_DEF = [
@@ -71,15 +71,15 @@ PLAYERS_DEF = [
 ]
 
 BOUNDARIES = {
+    "field": (math.Vector2(-4.5, 3), math.Vector2(4.5, -3)),
     "goal_red": (math.Vector2(-5, 0.7), math.Vector2(-4.5, -0.7)),
     "goal_blue": (math.Vector2(4.5, 0.7), math.Vector2(5, -0.7)),
-    "field": (math.Vector2(-4.5, 3), math.Vector2(4.5, -3)),
     "penalty_red": (math.Vector2(-4.5, 1), math.Vector2(-4, -1)),
     "penalty_blue": (math.Vector2(4, 1), math.Vector2(4.5, -1)),
     "shooting_red": (math.Vector2(-4.5, 1.5), math.Vector2(-3.5, -1.5)),
     "shooting_blue": (math.Vector2(3.5, 1.5), math.Vector2(4.5, -1.5)),
-    "red_side": (math.Vector2(-4.5, 3), math.Vector2(0, -3)),
-    "blue_side": (math.Vector2(0, 3), math.Vector2(4.5, -3)),
+    "side_red": (math.Vector2(-4.5, 3), math.Vector2(0, -3)),
+    "side_blue": (math.Vector2(0, 3), math.Vector2(4.5, -3)),
     "flank1": (math.Vector2(-4.5, -2.5), math.Vector2(4.5, -3)),
     "flank2": (math.Vector2(-4.5, 3), math.Vector2(4.5, 2.5)),
 }
