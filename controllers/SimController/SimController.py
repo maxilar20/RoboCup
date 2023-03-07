@@ -57,7 +57,13 @@ class SimController(Supervisor):
         self.time_passed += self.timeStep / 1000
 
         if simcontroller.is_time_up():
-            simcontroller.end_simulation()
+            if self.red_score == self.blue_score:
+                self.GUI.start_display("The score is tied, adding 5 more minutes")
+                self.max_game_time_secs += 300 #adding 5 more minutes in case of tie
+            else:
+                simcontroller.end_simulation()
+                self.red_coach.freeze(self.time_passed, 1)
+                self.blue_coach.freeze(self.time_passed, 1)
 
         if simcontroller.is_goal():
             self.kickoff = True
