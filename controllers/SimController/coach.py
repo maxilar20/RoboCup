@@ -230,7 +230,7 @@ class Coach:
             move_vector = player.pursue(goal_pos)
             move_vector += player.pursue(ball_pos)
             look_vector = ball_pos - player.position
-            if (ball_pos - player.position).magnitude() < 0.2:
+            if (ball_pos - player.position).magnitude() < 0.225:
                 player.kick()
         else:
             dribbling_pos = ball_mov_vector.normalize() * -0.3

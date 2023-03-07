@@ -6,12 +6,8 @@ import random
 
 import pygame
 from pygame.math import Vector2 as vec2
-from playsound import playsound
-import threading
-from time import time
 
 import numpy as np
-import cv2
 
 
 class SimController(Supervisor):
