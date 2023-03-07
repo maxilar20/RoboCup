@@ -23,6 +23,8 @@ class Entity:
         self.position_field = self.node.getField("translation")
 
         self.orientation_field = self.node.getField("rotation")
+        self.getPosition()
+        self.getOrientation()
 
     def spawn(self):
         root_node = self.robot.getRoot()
@@ -37,9 +39,10 @@ class Entity:
 
     def getOrientation(self):
         if self.orientation_field.getSFVec3f()[2] > 0:
-            return self.orientation_field.getSFVec3f()[3]
+            self.orientation = self.orientation_field.getSFVec3f()[3]
         else:
-            return (2 * 3.1415) - self.orientation_field.getSFVec3f()[3]
+            self.orientation = (2 * 3.1415) - self.orientation_field.getSFVec3f()[3]
+        return self.orientation
 
     def getGyro(self):
         return self.orientation_field.getSFRotation()

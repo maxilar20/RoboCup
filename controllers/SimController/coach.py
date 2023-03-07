@@ -289,7 +289,7 @@ class Coach:
         return others[np.argmin(distances)]
 
     def transformToPlayer(self, player, vector):
-        angle = mt.radians(vector.as_polar()[1]) - player.getOrientation()
+        angle = mt.radians(vector.as_polar()[1]) - player.orientation
         return vector.magnitude() * vec2(mt.cos(angle), mt.sin(angle))
 
     def getPlayersDict(self):

@@ -79,6 +79,7 @@ class SimController(Supervisor):
         # Update
         for player in self.players:
             player.getPosition()
+            player.getOrientation()
         self.ball.getPosition()
         for button in self.buttons:
             button.update()

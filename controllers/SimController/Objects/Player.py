@@ -48,7 +48,6 @@ class Player(Entity):
             circle_radius=0.15,
         )
 
-        self.getPosition()
         self.move_vector = vec2(0.001)
         self.look_vector = vec2(0.001)
 
@@ -117,26 +116,26 @@ class Player(Entity):
         return pursue_vector
 
     def transformToPlayer(self, player, vector):
-        angle = mt.radians(vector.as_polar()[1]) - player.getOrientation()
+        angle = mt.radians(vector.as_polar()[1]) - player.orientation
         return vector.magnitude() * vec2(mt.cos(angle), mt.sin(angle))
 
     def show(self, GUI):
         pygame.draw.circle(
             GUI.screen,
             self.color,
-            GUI.mapToGUI(self.getPosition()),
+            GUI.mapToGUI(self.position),
             GUI.scaleToGUI(self.circle_radius),
         )
         pygame.draw.circle(
             GUI.screen,
             (0, 255, 0),
             GUI.mapToGUI(
-                self.getPosition()
+                self.position
                 + 0.9
                 * np.array(
                     (
-                        self.circle_radius * np.cos(self.getOrientation() + 1),
-                        self.circle_radius * np.sin(self.getOrientation() + 1),
+                        self.circle_radius * np.cos(self.orientation + 1),
+                        self.circle_radius * np.sin(self.orientation + 1),
                     )
                 ),
             ),
@@ -146,12 +145,12 @@ class Player(Entity):
             GUI.screen,
             (0, 255, 0),
             GUI.mapToGUI(
-                self.getPosition()
+                self.position
                 + 0.9
                 * np.array(
                     (
-                        self.circle_radius * np.cos(self.getOrientation() - 1),
-                        self.circle_radius * np.sin(self.getOrientation() - 1),
+                        self.circle_radius * np.cos(self.orientation - 1),
+                        self.circle_radius * np.sin(self.orientation - 1),
                     )
                 ),
             ),
