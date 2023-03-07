@@ -12,7 +12,7 @@ WorldInfo {
 Viewpoint {
   fieldOfView 0.5
   orientation -0.08951046268250346 0.09041007285696465 0.9918739314027577 1.5689554262166014
-  position -0.13270116286346104 -20.279524673308963 4.0944565166775
+  position -0.1316498833780399 -20.174400229055156 4.075326114553886
 }
 Robot {
   children [
@@ -59,4 +59,18 @@ DEF GOAL_RED RobotstadiumGoal {
   translation -4.55 0 0
   rotation 0 0 1 3.14159
   name "robotstadium goal(1)"
+}
+SpotLight {
+  attenuation 0 0 1
+  beamWidth 0.7
+  direction -1 1 1
+  intensity 4
+  location 3 0 0
+}
+SpotLight {
+  attenuation 0 0 1
+  beamWidth 0.7
+  direction 1 1 1
+  intensity 4
+  location -3 0 0
 }

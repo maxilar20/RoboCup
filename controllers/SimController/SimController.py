@@ -107,10 +107,8 @@ class SimController(Supervisor):
         img = self.GUI.show(
             self.debug_button.state, self.time_passed, scores, self.showable
         )
-        print(self.display.getWidth())
-        rgba = cv2.cvtColor(img, cv2.COLOR_RGB2RGBA)
-
-        ir = self.display.imageNew(rgba.tobytes("F"), Display.RGBA, 334, 230)
+        img = np.flip(np.rot90(img, 3), 1)
+        ir = self.display.imageNew(img.tobytes(), Display.RGB, 334, 230)
         self.display.imagePaste(ir, 0, 0, False)
         self.display.imageDelete(ir)
 
