@@ -60,6 +60,7 @@ class GUI:
         self.display_message()
 
         pygame.display.flip()
+        return pygame.surfarray.array3d(self.screen)
 
     def start_display(self, message, time_s=3):
         self.messages.append((message, self.time_passed + time_s))
