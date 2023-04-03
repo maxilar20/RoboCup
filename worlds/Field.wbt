@@ -11,8 +11,8 @@ WorldInfo {
 }
 Viewpoint {
   fieldOfView 0.5
-  orientation -0.08951046268250346 0.09041007285696465 0.9918739314027577 1.5689554262166014
-  position -0.1316498833780399 -20.174400229055156 4.075326114553886
+  orientation -0.08951770756964601 0.08951770756964587 0.991954212684714 1.5788745682621763
+  position 0.0698754559093064 -14.341519552173978 3.291725851969885
 }
 Robot {
   children [
@@ -65,12 +65,12 @@ SpotLight {
   beamWidth 0.7
   direction -1 1 1
   intensity 4
-  location 3 0 0
+  location 3 0 1
 }
 SpotLight {
   attenuation 0 0 1
   beamWidth 0.7
   direction 1 1 1
   intensity 4
-  location -3 0 0
+  location -3 0 1
 }

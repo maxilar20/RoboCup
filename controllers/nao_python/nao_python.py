@@ -49,9 +49,6 @@ class Nao(Robot):
         elif self.message[3] == 1:
             self.new_state = "kicking"
             self.state_done = False
-        elif self.message[3] == 2:
-            self.new_state = "standing"
-            self.state_done = False
 
         # State Machine
         if self.state == "walking":
@@ -63,12 +60,6 @@ class Nao(Robot):
             self.walk_speed = 1
             self.smoothing = 0
             self.kick()
-
-        elif self.state == "standing":
-            pass
-
-        # TODO: add jumping
-        # TODO: add standing up
 
         # Change of state
         if self.state_done:
@@ -141,12 +132,12 @@ class Nao(Robot):
             self.actuateLegs(prefix, HipPitch, KneePitch, HipRoll, HipYawPitch)
 
     def actuateLegs(self, prefix, HipPitch, KneePitch, HipRoll, HipYawPitch):
-        self.legJoints[prefix + "HipPitch"]["joint"].setPosition(-HipPitch)
-        self.legJoints[prefix + "KneePitch"]["joint"].setPosition(KneePitch)
-        self.legJoints[prefix + "AnklePitch"]["joint"].setPosition(HipPitch - KneePitch)
-        self.legJoints[prefix + "HipRoll"]["joint"].setPosition(HipRoll)
-        self.legJoints[prefix + "AnkleRoll"]["joint"].setPosition(-HipRoll)
-        self.legJoints[prefix + "HipYawPitch"]["joint"].setPosition(HipYawPitch)
+        self.legJoints[f"{prefix}HipPitch"]["joint"].setPosition(-HipPitch)
+        self.legJoints[f"{prefix}KneePitch"]["joint"].setPosition(KneePitch)
+        self.legJoints[f"{prefix}AnklePitch"]["joint"].setPosition(HipPitch - KneePitch)
+        self.legJoints[f"{prefix}HipRoll"]["joint"].setPosition(HipRoll)
+        self.legJoints[f"{prefix}AnkleRoll"]["joint"].setPosition(-HipRoll)
+        self.legJoints[f"{prefix}HipYawPitch"]["joint"].setPosition(HipYawPitch)
 
     def inverseKinematics(self):
         time_array = [self.start_t, self.end_t]
