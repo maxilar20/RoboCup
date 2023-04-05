@@ -197,7 +197,6 @@ class SimController(Supervisor):
                 self.whistle_sound.play()
         else:
             self.GUI.start_display("Fell by itself", time_s=1)
-            self.whistle_sound.play()
 
     def end_simulation(self):
         pygame.mixer.stop()
@@ -224,16 +223,17 @@ class SimController(Supervisor):
         if team == "red":
             self.red_coach.state = "Penalty own"
             self.blue_coach.state = "Penalty other"
-            self.ball.setPosition([3.2, -0.1, 0.3])
+            self.ball.setPosition([3.2, -0.1, 0])
         elif team == "blue":
             self.red_coach.state = "Penalty other"
             self.blue_coach.state = "Penalty own"
-            self.ball.setPosition([-3.2, -0.1, 0.3])
+            self.ball.setPosition([-3.2, -0.1, 0])
 
         self.ball.resetPhysics()
         for player in self.players:
             player.setPosition(player.penalty_pos)
             player.resetOrientation()
+            player.resetPhysics()
 
     def penalty_red(self):
         self.penalty_position("red")
